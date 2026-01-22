@@ -75,6 +75,7 @@ export default function Header() {
         window.dispatchEvent(new Event("userLogin"));
         router.push("/login");
         setIsProfileOpen(false);
+        setIsMobileMenuOpen(false);
     };
 
     const headerStyles = scrolled ? "bg-[#1F4E79] py-3 shadow-lg" : "bg-white py-4 md:py-6 border-b border-gray-100";
@@ -202,6 +203,88 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+
+            {isMobileMenuOpen && (
+                <div className="absolute top-full left-0 w-full bg-white shadow-2xl border-t border-gray-100 p-5 flex flex-col gap-6 md:hidden animate-in slide-in-from-top-5 duration-200 h-[calc(100vh-70px)] overflow-y-auto">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar productos..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm outline-none focus:border-[#1F4E79] focus:ring-1 focus:ring-[#1F4E79] text-gray-900"
+                        />
+                    </div>
+
+                    <div className="flex justify-between items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Cotización Dólar</span>
+                        <div className="flex items-center gap-1 font-mono font-bold text-emerald-600">
+                            <CircleDollarSign size={16} />
+                            <span>${cotizacion.toLocaleString('es-AR')}</span>
+                        </div>
+                    </div>
+
+                    <hr className="border-gray-100" />
+
+                    {usuario ? (
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-3 mb-2 text-gray-900">
+                                <div className="w-10 h-10 rounded-full bg-[#1F4E79] text-white flex items-center justify-center font-bold text-lg">
+                                    {usuario.nombre.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-[#1F4E79]">{usuario.nombre}</p>
+                                    <p className="text-xs text-gray-500">Sesión activa</p>
+                                </div>
+                            </div>
+
+                            {usuario.rol === "ADMIN" && (
+                                <Link
+                                    href="/admin/pedidos"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 text-amber-700 font-medium hover:bg-amber-100 border border-amber-100"
+                                >
+                                    <ClipboardList size={20} />
+                                    <span>Gestor de Pedidos</span>
+                                </Link>
+                            )}
+
+                            <Link
+                                href="/perfil"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 text-gray-700 font-medium hover:bg-gray-100"
+                            >
+                                <UserCircle size={20} />
+                                <span>Mi Perfil</span>
+                            </Link>
+
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 mt-2"
+                            >
+                                <LogOut size={20} />
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <Link
+                                href="/login"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-full py-3 bg-[#1F4E79] text-white text-center font-bold rounded-xl shadow-lg"
+                            >
+                                Iniciar Sesión
+                            </Link>
+                            <Link
+                                href="/registro"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-full py-3 border-2 border-[#1F4E79] text-[#1F4E79] text-center font-bold rounded-xl"
+                            >
+                                Crear Cuenta
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
         </header>
     );
 }
