@@ -12,14 +12,13 @@ export default function GestorPedidos() {
     const [procesando, setProcesando] = useState(false);
 
     const cargarPedidos = () => {
-        // Obtenemos el usuario del localStorage para sacar su ID
         const user = JSON.parse(localStorage.getItem("usuario_extrarango") || "{}");
 
         fetch("/api/admin/pedidos", {
-            headers: { "user-id": user.id } // <--- AGREGAMOS LA CREDENCIAL AQUÍ
+            headers: { "user-id": user.id }
         })
             .then(res => {
-                if (res.status === 401) { router.replace("/"); return null; } // Si nos rebotan, a casa
+                if (res.status === 401) { router.replace("/"); return null; }
                 return res.json();
             })
             .then(data => {
@@ -207,6 +206,24 @@ export default function GestorPedidos() {
                         </div>
 
                         {/* PIE DEL MODAL CON ACCIONES */}
+                        <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-3 shrink-0">
+                            <button
+                                onClick={() => setPedidoSeleccionado(null)}
+                                className="px-5 py-2.5 text-gray-500 text-sm font-bold hover:bg-gray-100 rounded-xl transition-colors"
+                            >
+                                CERRAR
+                            </button>
+
+                            {/* --- BOTÓN REMITO --- */}
+                            <a
+                                href={`/admin/pedidos/remito/${pedidoSeleccionado.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-5 py-2.5 bg-gray-800 text-white rounded-xl text-sm font-bold hover:bg-gray-900 transition-colors flex items-center gap-2"
+                            >
+                                <Package size={16} /> REMITO
+                            </a>
+                        </div>
                         <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-between items-center shrink-0">
                             <div className="text-xs font-bold text-gray-400">
                                 ESTADO: <span className="text-[#1F4E79] uppercase">{pedidoSeleccionado.estado.replace("_", " ")}</span>
