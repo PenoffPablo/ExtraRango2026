@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { verificarAdmin } from "@/lib/auth"; // <--- IMPORTAR
+import db from "@/lib/db";
+import { verificarAdmin } from "@/lib/auth";
 
 export async function GET(req: Request) {
     // 1. VERIFICACIÓN DE SEGURIDAD
@@ -11,7 +11,6 @@ export async function GET(req: Request) {
 
     try {
         const pedidos = await db.pedidos.findMany({
-            // ... (resto de tu código igual que antes) ...
             include: {
                 usuarios: {
                     select: {
@@ -46,7 +45,6 @@ export async function PUT(req: Request) {
     }
 
     try {
-        // ... (resto de tu código igual) ...
         const body = await req.json();
         const { id, estado } = body;
 

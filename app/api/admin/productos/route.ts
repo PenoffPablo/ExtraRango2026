@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { verificarAdmin } from "@/lib/auth"; // <--- IMPORTAR
+import db from "@/lib/db";
+import { verificarAdmin } from "@/lib/auth";
 
 export async function POST(req: Request) {
     // 1. VERIFICACIÓN DE SEGURIDAD
@@ -10,7 +10,6 @@ export async function POST(req: Request) {
     }
 
     try {
-        // ... (resto de tu código igual) ...
         const body = await req.json();
         const {
             nombre, codigo_sku, descripcion,
@@ -18,7 +17,6 @@ export async function POST(req: Request) {
             imagen_url, stock_actual
         } = body;
 
-        // ... validaciones y creación ...
         if (!nombre || !precio_base_usd) {
             return NextResponse.json({ error: "Nombre y Precio obligatorios" }, { status: 400 });
         }

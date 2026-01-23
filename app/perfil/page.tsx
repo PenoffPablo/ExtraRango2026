@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign } from "lucide-react";
+import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign, XCircle } from "lucide-react";
 
 export default function PerfilPage() {
     const router = useRouter();
@@ -50,6 +50,26 @@ export default function PerfilPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleCancelarPedido = async (pedidoId: number) => {
+        if (!confirm("¿Estás seguro de que quieres dar de baja este pedido?")) return;
+
+        try {
+            const res = await fetch(`/api/usuario/pedidos/${pedidoId}/cancelar`, {
+                method: "PATCH",
+            });
+
+            if (res.ok) {
+                alert("Pedido cancelado correctamente.");
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                alert(data.error || "No se pudo cancelar el pedido.");
+            }
+        } catch (error) {
+            alert("Error al procesar la cancelación.");
+        }
     };
 
     const handleUpdate = async (e: React.FormEvent) => {
@@ -194,6 +214,7 @@ export default function PerfilPage() {
                             {pedidos.map((pedido: any) => (
                                 <div key={pedido.id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300">
                                     <div className="bg-gray-50/50 p-4 flex flex-wrap justify-between items-center gap-4">
+
                                         <div className="flex items-center gap-4">
                                             <div className="bg-[#1F4E79] text-white text-[10px] font-black px-2 py-1 rounded">
                                                 #{pedido.id}
@@ -202,6 +223,14 @@ export default function PerfilPage() {
                                                 <Calendar size={12} />
                                                 {new Date(pedido.fecha_pedido).toLocaleDateString()}
                                             </div>
+                                            {pedido.estado === "PENDIENTE" && (
+                                                <button
+                                                    onClick={() => handleCancelarPedido(pedido.id)}
+                                                    className="flex items-center gap-1 text-[10px] font-black uppercase text-red-500 border border-red-200 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-all ml-2"
+                                                >
+                                                    <XCircle size={10} /> Cancelar
+                                                </button>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
@@ -213,6 +242,7 @@ export default function PerfilPage() {
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${pedido.estado === 'COMPLETADO' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
                                                 }`}>
                                                 {pedido.estado}
+
                                             </span>
                                         </div>
                                     </div>
@@ -224,6 +254,7 @@ export default function PerfilPage() {
                                                     <div className="bg-gray-100 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-gray-500">
                                                         {detalle.cantidad}
                                                     </div>
+
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-700">{detalle.productos?.nombre || detalle.nombre_snapshot || "Producto"}</p>
                                                         {detalle.ojo && detalle.ojo !== "AMBOS" && (
