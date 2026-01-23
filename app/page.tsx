@@ -1,7 +1,7 @@
 import Hero from "@/components/Hero";
 import productService from "@/services/productService";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function serializeProductos(productos: any[]) {
   return productos.map(p => ({
