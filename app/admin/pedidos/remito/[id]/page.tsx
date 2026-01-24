@@ -9,7 +9,7 @@ export default function RemitoPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Buscamos los datos del pedido específico
+        // Buscar los datos del pedido específico
         fetch(`/api/admin/pedidos/${params.id}`)
             .then(res => res.json())
             .then(data => {
@@ -23,7 +23,6 @@ export default function RemitoPage() {
     if (!pedido || pedido.error) return <div className="p-10 text-center text-red-500">Pedido no encontrado</div>;
 
     return (
-        // CAMBIO 1: Cambié 'p-8' por 'pt-32 px-8 pb-8' para bajar el contenido
         <div className="bg-white min-h-screen text-black pt-32 px-8 pb-8 font-sans">
 
             {/* Estilos específicos para impresión */}
@@ -114,7 +113,7 @@ export default function RemitoPage() {
                 }
             `}</style>
 
-            {/* BOTÓN IMPRIMIR (Ahora sí visible) */}
+            {/* BOTÓN IMPRIMIR*/}
             <div className="no-print text-center mb-8">
                 <button
                     onClick={() => window.print()}
@@ -127,10 +126,7 @@ export default function RemitoPage() {
                     Tip: En la ventana que se abre, selecciona "Destino: Guardar como PDF"
                 </p>
             </div>
-
-            {/* ... Resto del contenido del remito (igual que antes) ... */}
             <div className="remito-container">
-                {/* ... (Todo el HTML del remito que ya funcionaba) ... */}
                 <div className="watermark">EXTRARANGO</div>
 
                 <div className="header">
@@ -141,7 +137,7 @@ export default function RemitoPage() {
                             <p><strong>Domicilio:</strong> Córdoba 270, Mendoza</p>
                             <p><strong>Teléfono:</strong> 2615542045</p>
                             <p><strong>Código Postal:</strong> 5500</p>
-                            <p className="mt-2 text-gray-500">Laboratorio Óptico Integral</p>
+                            <p className="mt-2 text-gray-500">AP</p>
                         </div>
                     </div>
                     <div className="w-1/2 pl-8 text-right flex flex-col justify-between">
@@ -165,6 +161,10 @@ export default function RemitoPage() {
                             <span className="uppercase">{pedido.usuarios.nombre} {pedido.usuarios.apellido}</span>
                         </div>
                         <div className="info-row">
+                            <span className="info-label">CUIT/CUIL:</span>
+                            <span>{pedido.usuarios.cuil}</span>
+                        </div>
+                        <div className="info-row">
                             <span className="info-label">Email:</span>
                             <span>{pedido.usuarios.email}</span>
                         </div>
@@ -174,6 +174,7 @@ export default function RemitoPage() {
                                 {pedido.usuarios.calle || '-'} {pedido.usuarios.numeracion}
                                 {pedido.usuarios.departamento ? ` Dpto ${pedido.usuarios.departamento}` : ''}
                                 {pedido.usuarios.provincia ? ` - ${pedido.usuarios.provincia}` : ''}
+                                {pedido.usuarios.cuil ? ` - ${pedido.usuarios.cuil}` : ''}
                             </span>
                         </div>
                         <div className="info-row">
@@ -216,11 +217,10 @@ export default function RemitoPage() {
                     <div className="text-[10px] w-[60%] text-gray-600">
                         Declaramos que los bienes detallados en este remito son propiedad del destinatario.<br />
                         Controlar mercadería antes de firmar. <br />
-                        Cambios únicamente dentro de los 15 días con este comprobante.
                     </div>
 
                     <div className="text-right">
-                        <div className="text-xs font-bold uppercase text-gray-500">Total Aproximado ARS</div>
+                        <div className="text-xs font-bold uppercase text-gray-500">Total en ARS</div>
                         <div className="text-2xl font-black">
                             ${Number(pedido.total_ars).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                         </div>
