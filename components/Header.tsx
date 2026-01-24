@@ -37,14 +37,11 @@ export default function Header() {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener("scroll", handleScroll);
 
-        // 2. OBTENER DOLAR BASE DE DATOS
         async function fetchCotizacion() {
             try {
                 const res = await fetch("/api/dolar");
                 const data = await res.json();
-                if (data.valor) {
-                    setCotizacion(data.valor);
-                }
+                if (data.valor) setCotizacion(data.valor);
             } catch (error) {
                 console.error("Error obteniendo cotización:", error);
             }
@@ -59,7 +56,6 @@ export default function Header() {
         checkUser();
         updateCart();
 
-        // Listeners globales
         window.addEventListener("userLogin", checkUser);
         window.addEventListener("cartUpdated", updateCart);
 
@@ -86,6 +82,7 @@ export default function Header() {
     return (
         <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${headerStyles}`}>
             <div className="w-full px-4 md:px-12 lg:px-20 flex items-center justify-between gap-4">
+                {/* LOGO Y MENÚ HAMBURGUESA */}
                 <div className="flex items-center gap-3 md:gap-0">
                     <button className={`md:hidden p-1 ${scrolled ? "text-white" : "text-[#1F4E79]"}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -95,13 +92,15 @@ export default function Header() {
                     </Link>
                 </div>
 
+                {/* BUSCADOR DESKTOP */}
                 <div className="hidden md:flex flex-1 max-w-2xl relative mx-4">
                     <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${scrolled ? "text-white/70" : "text-[#1F4E79]"}`} size={18} />
                     <input type="text" placeholder="Buscar por material, índice o línea..." className={`w-full border rounded-xl py-2.5 pl-12 pr-4 text-sm outline-none transition-all ${inputStyles}`} />
                 </div>
 
+                {/* ICONOS DERECHA */}
                 <div className="flex items-center gap-3 lg:gap-6 shrink-0">
-                    {/* DÓLAR OFICIAL INDICATOR */}
+                    {/* DÓLAR INDICATOR */}
                     <div className={`hidden sm:flex flex-col items-end border-r pr-6 ${scrolled ? "border-white/20" : "border-gray-200"}`}>
                         <span className={`text-[10px] uppercase font-bold tracking-widest ${scrolled ? "text-white/60" : "text-zinc-500"}`}>Dólar Ref.</span>
                         <div className={`flex items-center gap-1 font-mono font-bold ${scrolled ? "text-emerald-300" : "text-emerald-600"}`}>
@@ -110,7 +109,7 @@ export default function Header() {
                         </div>
                     </div>
 
-                    {/* CARRITO DROPDOWN */}
+                    {/* CARRITO */}
                     <div className="relative">
                         <button onClick={() => setIsCartOpen(!isCartOpen)} className={`relative p-2 transition-colors ${scrolled ? "text-white hover:text-white/80" : "text-gray-600 hover:text-[#1F4E79]"}`}>
                             <ShoppingCart size={24} />
@@ -137,11 +136,11 @@ export default function Header() {
                                                         <p className="text-xs text-gray-500">Cant: {item.quantity}</p>
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1">
-                                                        {/* PRECIO CALCULADO EN ARS */}
                                                         <span className="font-bold text-[#00D1C1]">
                                                             ${(item.precio * item.quantity * cotizacion).toLocaleString('es-AR')}
                                                         </span>
                                                         <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] text-gray-400">USD {item.precio}</span>
                                                             <button onClick={() => handleRemoveItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
                                                                 <Trash2 size={14} />
                                                             </button>
@@ -149,10 +148,9 @@ export default function Header() {
                                                     </div>
                                                 </div>
                                             ))}
-
                                             <div className="border-t border-gray-100 mt-3 pt-3 bg-gray-50 -mx-4 px-4 pb-2">
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-sm font-bold text-gray-600 uppercase">Total:</span>
+                                                    <span className="text-sm font-bold text-gray-600 uppercase">Total Estimado:</span>
                                                     <span className="text-xl font-black text-[#1F4E79]">
                                                         ${totalAmount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                                                     </span>
@@ -166,7 +164,7 @@ export default function Header() {
                         )}
                     </div>
 
-                    {/* PERFIL DE USUARIO */}
+                    {/* PERFIL DESKTOP */}
                     <div className="hidden md:block relative">
                         {usuario ? (
                             <div>
@@ -214,8 +212,21 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+
             {isMobileMenuOpen && (
                 <div className="absolute top-full left-0 w-full bg-white shadow-2xl border-t border-gray-100 p-5 flex flex-col gap-6 md:hidden animate-in slide-in-from-top-5 duration-200 h-[calc(100vh-70px)] overflow-y-auto">
+
+                    {/* Buscador Móvil */}
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar productos..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm outline-none focus:border-[#1F4E79] focus:ring-1 focus:ring-[#1F4E79] text-gray-900"
+                        />
+                    </div>
+
+                    {/* Cotización Móvil */}
                     <div className="flex justify-between items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">
                         <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Cotización Dólar</span>
                         <div className="flex items-center gap-1 font-mono font-bold text-emerald-600">
@@ -223,6 +234,68 @@ export default function Header() {
                             <span>${cotizacion.toLocaleString('es-AR')}</span>
                         </div>
                     </div>
+
+                    <hr className="border-gray-100" />
+
+                    {/* Modelo mobile */}
+                    {usuario ? (
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-3 mb-2 text-gray-900">
+                                <div className="w-10 h-10 rounded-full bg-[#1F4E79] text-white flex items-center justify-center font-bold text-lg">
+                                    {usuario.nombre.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-[#1F4E79]">{usuario.nombre}</p>
+                                    <p className="text-xs text-gray-500">Sesión activa</p>
+                                </div>
+                            </div>
+
+                            {usuario.rol === "ADMIN" && (
+                                <Link
+                                    href="/admin/pedidos"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 text-amber-700 font-medium hover:bg-amber-100 border border-amber-100"
+                                >
+                                    <ClipboardList size={20} />
+                                    <span>Gestor de Pedidos</span>
+                                </Link>
+                            )}
+
+                            <Link
+                                href="/perfil"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 text-gray-700 font-medium hover:bg-gray-100"
+                            >
+                                <UserCircle size={20} />
+                                <span>Mi Perfil</span>
+                            </Link>
+
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 mt-2"
+                            >
+                                <LogOut size={20} />
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-3">
+                            <Link
+                                href="/login"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-full py-3 bg-[#1F4E79] text-white text-center font-bold rounded-xl shadow-lg"
+                            >
+                                Iniciar Sesión
+                            </Link>
+                            <Link
+                                href="/registro"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-full py-3 border-2 border-[#1F4E79] text-[#1F4E79] text-center font-bold rounded-xl"
+                            >
+                                Crear Cuenta
+                            </Link>
+                        </div>
+                    )}
                 </div>
             )}
         </header>
