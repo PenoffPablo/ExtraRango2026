@@ -140,7 +140,6 @@ export default function Header() {
                                                             ${(item.precio * item.quantity * cotizacion).toLocaleString('es-AR')}
                                                         </span>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[9px] text-gray-400">USD {item.precio}</span>
                                                             <button onClick={() => handleRemoveItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
                                                                 <Trash2 size={14} />
                                                             </button>
