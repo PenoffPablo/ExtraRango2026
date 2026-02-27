@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import { getDollarRate } from "@/lib/getDollar";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const ultimoPedido = await db.pedidos.findFirst({
-            orderBy: { fecha_pedido: 'desc' },
-            select: { cotizacion_dolar_dia: true }
-        });
-
-        const cotizacion = ultimoPedido ? Number(ultimoPedido.cotizacion_dolar_dia) : 1480;
+        let cotizacion = await getDollarRate();
+        if (!cotizacion) {
+            cotizacion = 1480; // fallback
+        }
 
         return NextResponse.json({ valor: cotizacion });
     } catch (error) {

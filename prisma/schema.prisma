@@ -12,14 +12,18 @@ model detalles_pedido {
   pedido_id           Int
   producto_id         Int
   cantidad            Int
+  nombre_snapshot     String?             @db.VarChar(150)
   precio_unitario_usd Decimal             @db.Decimal(10, 2)
+  precio_unitario_ars Decimal?            @db.Decimal(15, 2)
   subtotal_usd        Decimal             @db.Decimal(10, 2)
+  subtotal_ars        Decimal?            @db.Decimal(15, 2)
   ojo                 detalles_pedido_ojo
-  esfera              Decimal?            @db.Decimal(4, 2)
-  cilindro            Decimal?            @db.Decimal(4, 2)
+  esfera              Decimal?            @db.Decimal(5, 2)
+  cilindro            Decimal?            @db.Decimal(5, 2)
   eje                 Int?
   pedidos             pedidos             @relation(fields: [pedido_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "detalles_pedido_ibfk_1")
   productos           productos           @relation(fields: [producto_id], references: [id], onUpdate: Restrict, map: "detalles_pedido_ibfk_2")
+  detalles_pedido_tratamientos detalles_pedido_tratamientos[]
 
   @@index([pedido_id], map: "pedido_id")
   @@index([producto_id], map: "producto_id")
@@ -49,7 +53,10 @@ model productos {
   linea             String?           @db.VarChar(50)
   indice_refraccion Decimal?          @db.Decimal(4, 3)
   rango_dioptrias   String?           @db.VarChar(100)
-  precio_base_usd   Decimal           @db.Decimal(10, 2)
+  esfera_desde      Decimal?          @db.Decimal(5, 2)
+  esfera_hasta      Decimal?          @db.Decimal(5, 2)
+  cilindro_hasta    Decimal?          @db.Decimal(5, 2)
+  precio_base_usd   Decimal           @db.Decimal(10, 4)
   stock_actual      Int?              @default(0)
   imagen_url        String?           @db.VarChar(255)
   estado            Boolean?          @default(true)
@@ -94,4 +101,27 @@ enum detalles_pedido_ojo {
 enum usuarios_rol {
   CLIENTE
   ADMIN
+}
+
+model tratamientos {
+  id         Int      @id @default(autoincrement())
+  codigo     String   @unique(map: "codigo_tratamiento") @db.VarChar(50)
+  nombre     String   @db.VarChar(150)
+  categoria  String?  @db.VarChar(50)
+  precio_usd Decimal  @db.Decimal(10, 4)
+  porcentaje Int?     @default(0)
+  estado     Boolean? @default(true)
+  detalles_pedido_tratamientos detalles_pedido_tratamientos[]
+}
+
+model detalles_pedido_tratamientos {
+  id                Int             @id @default(autoincrement())
+  detalle_pedido_id Int
+  tratamiento_id    Int
+  precio_usd        Decimal         @db.Decimal(10, 4)
+  detalles_pedido   detalles_pedido @relation(fields: [detalle_pedido_id], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  tratamientos      tratamientos    @relation(fields: [tratamiento_id], references: [id], onUpdate: Restrict)
+
+  @@index([detalle_pedido_id], map: "detalle_pedido_id")
+  @@index([tratamiento_id], map: "tratamiento_id")
 }

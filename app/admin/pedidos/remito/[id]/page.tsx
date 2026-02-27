@@ -137,7 +137,7 @@ export default function RemitoPage() {
                             <p><strong>Domicilio:</strong> Córdoba 270, Mendoza</p>
                             <p><strong>Teléfono:</strong> 2615542045</p>
                             <p><strong>Código Postal:</strong> 5500</p>
-                            <p className="mt-2 text-gray-500">AP</p>
+                            <p className="mt-2 text-gray-500">AP CALIBRADOS</p>
                         </div>
                     </div>
                     <div className="w-1/2 pl-8 text-right flex flex-col justify-between">
@@ -174,7 +174,6 @@ export default function RemitoPage() {
                                 {pedido.usuarios.calle || '-'} {pedido.usuarios.numeracion}
                                 {pedido.usuarios.departamento ? ` Dpto ${pedido.usuarios.departamento}` : ''}
                                 {pedido.usuarios.provincia ? ` - ${pedido.usuarios.provincia}` : ''}
-                                {pedido.usuarios.cuil ? ` - ${pedido.usuarios.cuil}` : ''}
                             </span>
                         </div>
                         <div className="info-row">

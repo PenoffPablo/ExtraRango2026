@@ -41,3 +41,10 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# Database Seeding y JSON locales
+/prisma/catalogo.json
+/prisma/tratamientos.json
+/prisma/seed.ts
+
+

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { nombre, apellido, email, password, telefono, calle, numeracion, departamento, provincia } = body;
+        const { nombre, apellido, email, password, telefono, cuil, calle, numeracion, departamento, provincia } = body;
 
         if (!nombre || !apellido || !email || !password) {
             return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
                 email,
                 password_hash: hashedPassword,
                 telefono,
+                cuil,
                 calle,
                 numeracion,
                 departamento,

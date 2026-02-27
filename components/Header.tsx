@@ -19,16 +19,19 @@ export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [cartItems, setCartItems] = useState<any[]>([]);
 
-    const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-    const totalAmount = cartItems.reduce((acc, item) => acc + (item.precio * item.quantity * cotizacion), 0);
+    const totalItems = cartItems.reduce((acc, item) => acc + (item.cantidad || item.quantity || 1), 0);
+    const totalAmount = cartItems.reduce((acc, item) => {
+        if (item.totalUsd) return acc + (item.totalUsd * cotizacion);
+        return acc + ((item.precio || 0) * (item.quantity || 1) * cotizacion);
+    }, 0);
 
     const updateCart = () => {
         const storedCart = JSON.parse(localStorage.getItem("cart_extrarango") || "[]");
         setCartItems(storedCart);
     };
 
-    const handleRemoveItem = (id: number) => {
-        const updatedCart = cartItems.filter(item => item.id !== id);
+    const handleRemoveItem = (cartItemId: string | number) => {
+        const updatedCart = cartItems.filter(item => (item.cartItemId || item.id) !== cartItemId);
         localStorage.setItem("cart_extrarango", JSON.stringify(updatedCart));
         window.dispatchEvent(new Event("cartUpdated"));
     };
@@ -92,11 +95,11 @@ export default function Header() {
                     </Link>
                 </div>
 
-                {/* BUSCADOR DESKTOP */}
+                {/* BUSCADOR DESKTOP 
                 <div className="hidden md:flex flex-1 max-w-2xl relative mx-4">
                     <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${scrolled ? "text-white/70" : "text-[#1F4E79]"}`} size={18} />
                     <input type="text" placeholder="Buscar por material, índice o línea..." className={`w-full border rounded-xl py-2.5 pl-12 pr-4 text-sm outline-none transition-all ${inputStyles}`} />
-                </div>
+                </div>*/}
 
                 {/* ICONOS DERECHA */}
                 <div className="flex items-center gap-3 lg:gap-6 shrink-0">
@@ -128,25 +131,50 @@ export default function Header() {
                                     {cartItems.length === 0 ? (
                                         <p className="text-sm text-gray-500 text-center py-4">El carrito está vacío</p>
                                     ) : (
-                                        <div className="max-h-60 overflow-y-auto space-y-3">
-                                            {cartItems.map((item) => (
-                                                <div key={item.id} className="flex justify-between items-start text-sm group">
-                                                    <div className="flex-1">
-                                                        <p className="font-bold text-[#1F4E79] truncate">{item.nombre}</p>
-                                                        <p className="text-xs text-gray-500">Cant: {item.quantity}</p>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-1">
-                                                        <span className="font-bold text-[#00D1C1]">
-                                                            ${(item.precio * item.quantity * cotizacion).toLocaleString('es-AR')}
-                                                        </span>
-                                                        <div className="flex items-center gap-2">
-                                                            <button onClick={() => handleRemoveItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                                                                <Trash2 size={14} />
+                                        <div className="max-h-72 overflow-y-auto space-y-3">
+                                            {cartItems.map((item, idx) => {
+                                                const itemKey = item.cartItemId || item.id || idx;
+                                                const itemTotal = item.totalUsd
+                                                    ? item.totalUsd * cotizacion
+                                                    : (item.precio || 0) * (item.quantity || 1) * cotizacion;
+                                                return (
+                                                    <div key={itemKey} className="flex justify-between items-start text-sm group border-b border-gray-50 pb-2 last:border-0">
+                                                        <div className="flex-1 min-w-0 pr-2">
+                                                            <p className="font-bold text-[#1F4E79] truncate text-xs">{item.nombre}</p>
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {item.ojo && (
+                                                                    <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                                                                        {item.ojo === "AMBOS" ? "Par" : item.ojo}
+                                                                    </span>
+                                                                )}
+                                                                {item.esfera !== undefined && item.esfera !== null && (
+                                                                    <span className="text-[9px] font-medium text-gray-400">
+                                                                        ESF:{item.esfera >= 0 ? `+${item.esfera}` : item.esfera}
+                                                                    </span>
+                                                                )}
+                                                                {item.cilindro !== undefined && item.cilindro !== null && (
+                                                                    <span className="text-[9px] font-medium text-gray-400">
+                                                                        CIL:{item.cilindro >= 0 ? `+${item.cilindro}` : item.cilindro}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {item.tratamientos && item.tratamientos.length > 0 && (
+                                                                <p className="text-[9px] text-[#00D1C1] font-medium mt-0.5 truncate">
+                                                                    +{item.tratamientos.length} tratamiento{item.tratamientos.length > 1 ? 's' : ''}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1 shrink-0">
+                                                            <span className="font-bold text-[#00D1C1] text-xs">
+                                                                ${itemTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                                                            </span>
+                                                            <button onClick={() => handleRemoveItem(itemKey)} className="text-gray-300 hover:text-red-500 transition-colors">
+                                                                <Trash2 size={13} />
                                                             </button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                             <div className="border-t border-gray-100 mt-3 pt-3 bg-gray-50 -mx-4 px-4 pb-2">
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-sm font-bold text-gray-600 uppercase">Total Estimado:</span>

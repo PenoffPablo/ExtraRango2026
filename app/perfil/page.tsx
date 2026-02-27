@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign, XCircle } from "lucide-react";
+import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign, XCircle, IdCard } from "lucide-react";
 
 export default function PerfilPage() {
     const router = useRouter();
@@ -14,6 +14,7 @@ export default function PerfilPage() {
         nombre: "",
         apellido: "",
         telefono: "",
+        cuil: "",
         password: ""
     });
 
@@ -31,6 +32,7 @@ export default function PerfilPage() {
             nombre: parsedUser.nombre || "",
             apellido: parsedUser.apellido || "",
             telefono: parsedUser.telefono || "",
+            cuil: parsedUser.cuil || "",
             password: ""
         });
 
@@ -163,6 +165,14 @@ export default function PerfilPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">CUIL / CUIT</label>
+                                <div className="relative">
+                                    <IdCard size={14} className="absolute left-3 top-3.5 text-gray-400" />
+                                    <input name="cuil" value={formData.cuil} onChange={handleChange} placeholder="Sin guiones (ej: 20123456789)" className="w-full pl-9 bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold font-mono focus:outline-none focus:border-[#00D1C1]" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -236,7 +246,7 @@ export default function PerfilPage() {
                                             <div className="text-right">
                                                 <div className="flex items-center gap-1 text-[#1F4E79] font-black">
                                                     <DollarSign size={14} />
-                                                    {Number(pedido.total_usd).toFixed(2)}
+                                                    {Number(pedido.total_ars).toFixed(2)}
                                                 </div>
                                             </div>
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${pedido.estado === 'COMPLETADO' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'

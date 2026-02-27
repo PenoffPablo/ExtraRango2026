@@ -100,7 +100,7 @@ export default function GestorPedidos() {
                             <div className="flex justify-between items-start mb-4">
                                 <div className="bg-[#1F4E79] text-white text-[10px] font-black px-2 py-1 rounded">#{pedido.id}</div>
                                 <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${pedido.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-600' :
-                                        pedido.estado === 'CANCELADO' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                                    pedido.estado === 'CANCELADO' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                                     }`}>
                                     {pedido.estado.replace("_", " ")}
                                 </span>
@@ -148,11 +148,11 @@ export default function GestorPedidos() {
                                         <div className="font-bold text-gray-800">{pedido.usuarios.nombre} {pedido.usuarios.apellido}</div>
                                         <div className="text-xs text-gray-400">{pedido.usuarios.email}</div>
                                     </td>
-                                    <td className="px-6 py-4 font-black text-[#00D1C1]">US$ {Number(pedido.total_usd).toFixed(2)}</td>
+                                    <td className="px-6 py-4 font-black text-[#00D1C1]">$ {Number(pedido.total_ars).toFixed(2)}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${pedido.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-600' :
-                                                pedido.estado === 'CANCELADO' ? 'bg-red-100 text-red-600' :
-                                                    pedido.estado === 'FINALIZADO' ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-600'
+                                            pedido.estado === 'CANCELADO' ? 'bg-red-100 text-red-600' :
+                                                pedido.estado === 'FINALIZADO' ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-600'
                                             }`}>
                                             {pedido.estado.replace("_", " ")}
                                         </span>
@@ -199,7 +199,7 @@ export default function GestorPedidos() {
                                     <div key={index} className="border border-gray-200 rounded-xl p-4 bg-gray-50/30">
                                         <div className="flex justify-between items-start mb-3">
                                             <p className="font-bold text-[#1F4E79] leading-tight pr-4">{detalle.productos?.nombre || detalle.nombre_snapshot}</p>
-                                            <p className="font-mono font-black text-gray-700 whitespace-nowrap text-sm">US$ {Number(detalle.precio_unitario_usd).toFixed(2)}</p>
+                                            <p className="font-mono font-black text-gray-700 whitespace-nowrap text-sm">$ {Number(detalle.precio_unitario_ars).toFixed(2)}</p>
                                         </div>
 
                                         <div className="grid grid-cols-4 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200 text-center">

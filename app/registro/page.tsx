@@ -11,11 +11,11 @@ export default function RegistroPage() {
         email: "",
         password: "",
         telefono: "",
-        cuil: "", // Campo nuevo para datos fiscales
+        cuil: "",
         calle: "",
         numeracion: "",
         departamento: "",
-        provincia: "Mendoza" // Valor por defecto
+        provincia: "Mendoza"
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);

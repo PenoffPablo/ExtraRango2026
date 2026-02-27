@@ -26,10 +26,13 @@ export default function CheckoutAction() {
             setLoading(false);
             return;
         }
+
         const storedRate = localStorage.getItem("last_dollar_rate");
         const cotizacionReal = storedRate ? Number(storedRate) : 1500;
+
         const totalUSD = cartItems.reduce((acc: number, item: any) => {
-            return acc + (Number(item.precio) * item.quantity);
+            if (item.totalUsd) return acc + item.totalUsd;
+            return acc + (Number(item.precio) * (item.quantity || 1));
         }, 0);
 
         const orderPayload = {
@@ -37,14 +40,15 @@ export default function CheckoutAction() {
             cotizacion_dolar: cotizacionReal,
             total_usd: totalUSD,
             items: cartItems.map((item: any) => ({
-                id: item.id,
-                cantidad: item.quantity,
-                precio: item.precio,
+                id: item.productoId || item.id,
+                cantidad: item.cantidad || item.quantity || 1,
+                precio: item.precioUnitarioUsd || item.precio,
                 nombre: item.nombre,
-                ojo: "AMBOS",
-                esfera: null,
-                cilindro: null,
-                eje: null
+                ojo: item.ojo || "AMBOS",
+                esfera: item.esfera ?? null,
+                cilindro: item.cilindro ?? null,
+                eje: item.eje ?? null,
+                tratamientos: item.tratamientos || [],
             }))
         };
 

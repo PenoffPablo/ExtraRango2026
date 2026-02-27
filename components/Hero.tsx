@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Search, X, ShoppingCart } from "lucide-react";
+import RecetaModal from "./RecetaModal";
 
 type ProductoSerializado = {
     id: number;
@@ -12,6 +13,9 @@ type ProductoSerializado = {
     linea: string | null;
     indice_refraccion: string | null;
     rango_dioptrias: string | null;
+    esfera_desde: string | null;
+    esfera_hasta: string | null;
+    cilindro_hasta: string | null;
     precio_base_usd: string;
     precio_ars?: string;
     stock_actual: number | null;
@@ -29,8 +33,35 @@ export default function Hero({ productos }: HeroProps) {
     const [selectedMaterial, setSelectedMaterial] = useState<string>("all");
     const [minPrice, setMinPrice] = useState<string>("");
     const [maxPrice, setMaxPrice] = useState<string>("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productoModal, setProductoModal] = useState<ProductoSerializado | null>(null);
+    const PAGE_SIZE = 10;
 
-    const lineas = useMemo(() => [...new Set(productos.map(p => p.linea).filter(Boolean))].sort(), [productos]);
+    const categoriasLineas = useMemo(() => {
+        const agrupar: Record<string, string[]> = {
+            "Stock": [],
+            "Laboratorio Digital": [],
+            "Bifocales": [],
+            "Multifocales": [],
+            "Especialidades": [],
+            "Otros": []
+        };
+
+        const lineasUnicas = Array.from(new Set(productos.map(p => p.linea).filter(Boolean))).sort() as string[];
+
+        lineasUnicas.forEach(linea => {
+            const lower = linea.toLowerCase();
+            if (lower.includes("stock")) agrupar["Stock"].push(linea);
+            else if (lower.includes("laboratorio")) agrupar["Laboratorio Digital"].push(linea);
+            else if (lower.includes("bifocal")) agrupar["Bifocales"].push(linea);
+            else if (lower.includes("multifocal")) agrupar["Multifocales"].push(linea);
+            else if (lower.includes("especialidad") || lower.includes("baja visión") || lower.includes("hipermetropía")) agrupar["Especialidades"].push(linea);
+            else agrupar["Otros"].push(linea);
+        });
+
+        return Object.entries(agrupar).filter(([_, items]) => items.length > 0);
+    }, [productos]);
+
     const materiales = useMemo(() => [...new Set(productos.map(p => p.material).filter(Boolean))].sort(), [productos]);
 
     const productosFiltrados = useMemo(() => {
@@ -47,18 +78,25 @@ export default function Hero({ productos }: HeroProps) {
         });
     }, [productos, searchTerm, selectedLinea, selectedMaterial, minPrice, maxPrice]);
 
+    const totalPages = Math.ceil(productosFiltrados.length / PAGE_SIZE);
+    const productosPaginados = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return productosFiltrados.slice(start, start + PAGE_SIZE);
+    }, [productosFiltrados, currentPage]);
+
     const clearFilters = () => {
         setSearchTerm("");
         setSelectedLinea("all");
         setSelectedMaterial("all");
         setMinPrice("");
         setMaxPrice("");
+        setCurrentPage(1);
     };
 
     const hasActiveFilters = searchTerm || selectedLinea !== "all" || selectedMaterial !== "all" || minPrice || maxPrice;
 
     return (
-        <section className="min-h-screen bg-white text-black pt-32 pb-20">
+        <section className="min-h-screen bg-white text-black pt-32 pb-32">
             <div className="w-full px-4 md:px-12 lg:px-20">
                 <div className="mb-12 text-center">
                     <h1 className="text-5xl font-black tracking-tighter mb-2 uppercase text-[#1F4E79]">
@@ -77,7 +115,7 @@ export default function Hero({ productos }: HeroProps) {
                                 <input
                                     type="text"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                     placeholder="Buscar producto..."
                                     className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-bold"
                                 />
@@ -88,11 +126,17 @@ export default function Hero({ productos }: HeroProps) {
                             <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Línea</label>
                             <select
                                 value={selectedLinea}
-                                onChange={(e) => setSelectedLinea(e.target.value)}
+                                onChange={(e) => { setSelectedLinea(e.target.value); setCurrentPage(1); }}
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-bold appearance-none"
                             >
                                 <option value="all">Todas</option>
-                                {lineas.map(linea => <option key={linea} value={linea!}>{linea}</option>)}
+                                {categoriasLineas.map(([categoria, items]) => (
+                                    <optgroup key={categoria} label={categoria}>
+                                        {items.map(linea => (
+                                            <option key={linea} value={linea}>{linea}</option>
+                                        ))}
+                                    </optgroup>
+                                ))}
                             </select>
                         </div>
 
@@ -100,7 +144,7 @@ export default function Hero({ productos }: HeroProps) {
                             <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Material</label>
                             <select
                                 value={selectedMaterial}
-                                onChange={(e) => setSelectedMaterial(e.target.value)}
+                                onChange={(e) => { setSelectedMaterial(e.target.value); setCurrentPage(1); }}
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-bold appearance-none"
                             >
                                 <option value="all">Todos</option>
@@ -111,8 +155,8 @@ export default function Hero({ productos }: HeroProps) {
                         <div>
                             <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Rango Precio (USD)</label>
                             <div className="flex gap-2">
-                                <input type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Min" className="w-1/2 px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]" />
-                                <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Max" className="w-1/2 px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]" />
+                                <input type="number" value={minPrice} onChange={(e) => { setMinPrice(e.target.value); setCurrentPage(1); }} placeholder="Min" className="w-1/2 px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]" />
+                                <input type="number" value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); setCurrentPage(1); }} placeholder="Max" className="w-1/2 px-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]" />
                             </div>
                         </div>
                     </div>
@@ -133,9 +177,9 @@ export default function Hero({ productos }: HeroProps) {
                     </div>
 
                     <div className="divide-y divide-gray-50">
-                        {productosFiltrados.map((p) => (
+                        {productosPaginados.map((p) => (
                             <div key={p.id} className="grid grid-cols-1 md:grid-cols-12 py-6 px-8 items-center hover:bg-blue-50/10 transition-colors gap-4 md:gap-0">
-                                <div className="col-span-6">
+                                <div className="col-span-5">
                                     <div className="flex flex-col">
                                         <h3 className="text-lg font-black text-[#1F4E79] uppercase leading-tight">
                                             {p.nombre}
@@ -144,38 +188,86 @@ export default function Hero({ productos }: HeroProps) {
                                             {p.linea && <span className="text-[9px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded uppercase">{p.linea}</span>}
                                             {p.material && <span className="text-[9px] font-black bg-[#00D1C1]/10 text-[#00D1C1] px-2 py-0.5 rounded uppercase">{p.material}</span>}
                                         </div>
+                                        {/* Rango del cristal */}
+                                        <div className="flex flex-wrap gap-3 mt-2 text-[9px] font-bold text-gray-400">
+                                            {p.esfera_desde && p.esfera_hasta && (
+                                                <span>ESF: {Number(p.esfera_desde).toFixed(2)} a {Number(p.esfera_hasta) >= 0 ? '+' : ''}{Number(p.esfera_hasta).toFixed(2)}</span>
+                                            )}
+                                            {p.cilindro_hasta && (
+                                                <span>CIL: hasta {Number(p.cilindro_hasta).toFixed(2)}</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* PRECIO*/}
-                                <div className="col-span-3 text-right">
+                                <div className="col-span-4 text-right">
                                     <div className="text-2xl font-black text-[#00D1C1] tracking-tighter">
                                         ${p.precio_ars || "Consultar"}
                                     </div>
+                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">precio base / unidad</p>
                                 </div>
 
                                 <div className="col-span-3 text-right">
                                     <button
-                                        onClick={() => {
-                                            const item = { id: p.id, nombre: p.nombre, precio: Number(p.precio_base_usd), quantity: 1 };
-                                            const cart = JSON.parse(localStorage.getItem("cart_extrarango") || "[]");
-                                            const idx = cart.findIndex((i: any) => i.id === p.id);
-                                            if (idx > -1) cart[idx].quantity += 1;
-                                            else cart.push(item);
-                                            localStorage.setItem("cart_extrarango", JSON.stringify(cart));
-                                            window.dispatchEvent(new Event("cartUpdated"));
-                                        }}
+                                        onClick={() => setProductoModal(p)}
                                         className="inline-flex items-center justify-center gap-2 bg-[#1F4E79] text-white px-6 py-3 rounded-2xl text-[11px] font-black hover:bg-[#163a5c] transition-all active:scale-95 shadow-lg shadow-[#1F4E79]/20 uppercase w-full md:w-auto"
                                     >
                                         <ShoppingCart size={16} />
-                                        Añadir
+                                        Cotizar
                                     </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
+
+                {totalPages > 1 && (
+                    <div className="flex flex-col items-center gap-4 mt-10">
+                        <p className="text-xs font-bold text-gray-400">
+                            Página {currentPage} de {totalPages} — {productosFiltrados.length} productos
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                disabled={currentPage === 1}
+                                className="px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase border border-gray-200 bg-white text-[#1F4E79] hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                ← Anterior
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                    key={page}
+                                    onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                    className={`w-10 h-10 rounded-2xl text-[11px] font-black transition-all ${page === currentPage
+                                        ? "bg-[#1F4E79] text-white shadow-lg shadow-[#1F4E79]/20 scale-110"
+                                        : "bg-white border border-gray-200 text-[#1F4E79] hover:bg-blue-50"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+
+                            <button
+                                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                disabled={currentPage === totalPages}
+                                className="px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase border border-gray-200 bg-white text-[#1F4E79] hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                Siguiente →
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Modal de Receta */}
+            {productoModal && (
+                <RecetaModal
+                    producto={productoModal}
+                    onClose={() => setProductoModal(null)}
+                />
+            )}
         </section>
     );
 }
