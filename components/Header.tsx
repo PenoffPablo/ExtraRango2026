@@ -71,8 +71,10 @@ export default function Header() {
 
     const handleLogout = () => {
         localStorage.removeItem("usuario_extrarango");
+        localStorage.removeItem("cart_extrarango");
         setUsuario(null);
         window.dispatchEvent(new Event("userLogin"));
+        window.dispatchEvent(new Event("cartUpdated"));
         router.push("/login");
         setIsProfileOpen(false);
         setIsMobileMenuOpen(false);
@@ -166,7 +168,7 @@ export default function Header() {
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1 shrink-0">
                                                             <span className="font-bold text-[#00D1C1] text-xs">
-                                                                ${itemTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                                                                ${itemTotal.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </span>
                                                             <button onClick={() => handleRemoveItem(itemKey)} className="text-gray-300 hover:text-red-500 transition-colors">
                                                                 <Trash2 size={13} />
@@ -179,7 +181,7 @@ export default function Header() {
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-sm font-bold text-gray-600 uppercase">Total Estimado:</span>
                                                     <span className="text-xl font-black text-[#1F4E79]">
-                                                        ${totalAmount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                                        ${totalAmount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                                 <CheckoutAction />

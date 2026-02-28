@@ -27,8 +27,12 @@ export default function CheckoutAction() {
             return;
         }
 
-        const storedRate = localStorage.getItem("last_dollar_rate");
-        const cotizacionReal = storedRate ? Number(storedRate) : 1500;
+        let cotizacionReal = 1500;
+        try {
+            const dolarRes = await fetch("/api/dolar");
+            const dolarData = await dolarRes.json();
+            if (dolarData.valor) cotizacionReal = Number(dolarData.valor);
+        } catch { }
 
         const totalUSD = cartItems.reduce((acc: number, item: any) => {
             if (item.totalUsd) return acc + item.totalUsd;

@@ -38,9 +38,9 @@ export async function POST(req: Request) {
                             subtotal_usd: subtotalUsd,
                             subtotal_ars: subtotalUsd * cotizacion,
                             ojo: item.ojo || "AMBOS",
-                            esfera: item.esfera ? Number(item.esfera) : null,
-                            cilindro: item.cilindro ? Number(item.cilindro) : null,
-                            eje: item.eje ? Number(item.eje) : null,
+                            esfera: item.esfera !== undefined && item.esfera !== null ? Number(item.esfera) : null,
+                            cilindro: item.cilindro !== undefined && item.cilindro !== null ? Number(item.cilindro) : null,
+                            eje: item.eje !== undefined && item.eje !== null ? Number(item.eje) : null,
                         };
                     })
                 }
@@ -70,8 +70,13 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, pedidoId: nuevoPedido.id });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("ERROR_CREAR_PEDIDO:", error);
-        return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+
+        if (error.code === 'P2003') {
+            return NextResponse.json({ error: "Algunos productos o tratamientos de tu carrito fueron actualizados y ya no existen con ese ID. Por favor, vacía tu carrito y vuelve a agregarlos." }, { status: 400 });
+        }
+
+        return NextResponse.json({ error: error?.message || "Error interno del servidor" }, { status: 500 });
     }
 }

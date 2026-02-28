@@ -30,53 +30,59 @@ interface HeroProps {
 export default function Hero({ productos }: HeroProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedLinea, setSelectedLinea] = useState<string>("all");
-    const [selectedMaterial, setSelectedMaterial] = useState<string>("all");
+    const [sortBy, setSortBy] = useState<string>("all");
     const [minPrice, setMinPrice] = useState<string>("");
     const [maxPrice, setMaxPrice] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [productoModal, setProductoModal] = useState<ProductoSerializado | null>(null);
     const PAGE_SIZE = 10;
 
+    const getCategoriaLinea = (linea: string | null) => {
+        if (!linea) return "Otros";
+        const lower = linea.toLowerCase();
+        if (lower.includes("stock")) return "Stock";
+        if (lower.includes("laboratorio")) return "Laboratorio Digital";
+        if (lower.includes("bifocal")) return "Bifocales";
+        if (lower.includes("multifocal")) return "Multifocales";
+        if (lower.includes("especialidad") || lower.includes("baja visión") || lower.includes("hipermetropía")) return "Especialidades";
+        return "Otros";
+    };
+
     const categoriasLineas = useMemo(() => {
-        const agrupar: Record<string, string[]> = {
-            "Stock": [],
-            "Laboratorio Digital": [],
-            "Bifocales": [],
-            "Multifocales": [],
-            "Especialidades": [],
-            "Otros": []
-        };
+        const categoriasPresentes = new Set<string>(productos.map(p => getCategoriaLinea(p.linea)));
 
-        const lineasUnicas = Array.from(new Set(productos.map(p => p.linea).filter(Boolean))).sort() as string[];
+        const ordenDeseado: string[] = [
+            "Stock",
+            "Laboratorio Digital",
+            "Bifocales",
+            "Multifocales",
+            "Especialidades",
+            "Otros"
+        ];
 
-        lineasUnicas.forEach(linea => {
-            const lower = linea.toLowerCase();
-            if (lower.includes("stock")) agrupar["Stock"].push(linea);
-            else if (lower.includes("laboratorio")) agrupar["Laboratorio Digital"].push(linea);
-            else if (lower.includes("bifocal")) agrupar["Bifocales"].push(linea);
-            else if (lower.includes("multifocal")) agrupar["Multifocales"].push(linea);
-            else if (lower.includes("especialidad") || lower.includes("baja visión") || lower.includes("hipermetropía")) agrupar["Especialidades"].push(linea);
-            else agrupar["Otros"].push(linea);
-        });
-
-        return Object.entries(agrupar).filter(([_, items]) => items.length > 0);
+        return ordenDeseado.filter(cat => categoriasPresentes.has(cat));
     }, [productos]);
 
-    const materiales = useMemo(() => [...new Set(productos.map(p => p.material).filter(Boolean))].sort(), [productos]);
-
     const productosFiltrados = useMemo(() => {
-        return productos.filter(producto => {
+        let filtered = productos.filter(producto => {
             const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesLinea = selectedLinea === "all" || producto.linea === selectedLinea;
-            const matchesMaterial = selectedMaterial === "all" || producto.material === selectedMaterial;
+            const matchesLinea = selectedLinea === "all" || getCategoriaLinea(producto.linea) === selectedLinea;
             const precio = Number(producto.precio_base_usd);
             const min = minPrice ? Number(minPrice) : 0;
             const max = maxPrice ? Number(maxPrice) : Infinity;
             const matchesPrice = precio >= min && precio <= max;
 
-            return matchesSearch && matchesLinea && matchesMaterial && matchesPrice;
+            return matchesSearch && matchesLinea && matchesPrice;
         });
-    }, [productos, searchTerm, selectedLinea, selectedMaterial, minPrice, maxPrice]);
+
+        if (sortBy === "precio-asc") {
+            filtered = [...filtered].sort((a, b) => Number(a.precio_base_usd) - Number(b.precio_base_usd));
+        } else if (sortBy === "precio-desc") {
+            filtered = [...filtered].sort((a, b) => Number(b.precio_base_usd) - Number(a.precio_base_usd));
+        }
+
+        return filtered;
+    }, [productos, searchTerm, selectedLinea, sortBy, minPrice, maxPrice]);
 
     const totalPages = Math.ceil(productosFiltrados.length / PAGE_SIZE);
     const productosPaginados = useMemo(() => {
@@ -87,13 +93,13 @@ export default function Hero({ productos }: HeroProps) {
     const clearFilters = () => {
         setSearchTerm("");
         setSelectedLinea("all");
-        setSelectedMaterial("all");
+        setSortBy("all");
         setMinPrice("");
         setMaxPrice("");
         setCurrentPage(1);
     };
 
-    const hasActiveFilters = searchTerm || selectedLinea !== "all" || selectedMaterial !== "all" || minPrice || maxPrice;
+    const hasActiveFilters = searchTerm || selectedLinea !== "all" || sortBy !== "all" || minPrice || maxPrice;
 
     return (
         <section className="min-h-screen bg-white text-black pt-32 pb-32">
@@ -130,25 +136,23 @@ export default function Hero({ productos }: HeroProps) {
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-bold appearance-none"
                             >
                                 <option value="all">Todas</option>
-                                {categoriasLineas.map(([categoria, items]) => (
-                                    <optgroup key={categoria} label={categoria}>
-                                        {items.map(linea => (
-                                            <option key={linea} value={linea}>{linea}</option>
-                                        ))}
-                                    </optgroup>
+                                {categoriasLineas.map(categoria => (
+                                    <option key={categoria} value={categoria}>{categoria}</option>
                                 ))}
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Material</label>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Filtros</label>
                             <select
-                                value={selectedMaterial}
-                                onChange={(e) => { setSelectedMaterial(e.target.value); setCurrentPage(1); }}
+                                value={sortBy}
+                                onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-bold appearance-none"
                             >
-                                <option value="all">Todos</option>
-                                {materiales.map(m => <option key={m} value={m!}>{m}</option>)}
+                                <option value="all">Predeterminado</option>
+                                <option value="mas-vendidos">Más vendidos</option>
+                                <option value="precio-asc">Precio (Menor a Mayor)</option>
+                                <option value="precio-desc">Precio (Mayor a Menor)</option>
                             </select>
                         </div>
 

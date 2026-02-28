@@ -46,6 +46,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const [loadingTrat, setLoadingTrat] = useState(true);
     const [adding, setAdding] = useState(false);
     const [cotizacion, setCotizacion] = useState<number>(1480);
+    const [errorMsg, setErrorMsg] = useState<string>("");
 
     // Cargar cotización desde API del dólar
     useEffect(() => {
@@ -117,10 +118,31 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
         return grouped;
     }, [tratamientos]);
 
-    const puedeAgregar = esfera !== "" && cilindro !== "";
+    const MAX_ITEMS_CARRITO = 5;
+
+    const esferaValida = esfera !== "" && Number(esfera) >= esferaDesde && Number(esfera) <= esferaHasta;
+    const cilindroValido = cilindro !== "" && Number(cilindro) >= Math.min(cilindroHasta, 0) && Number(cilindro) <= Math.max(cilindroHasta, 0);
+    const puedeAgregar = esfera !== "" && cilindro !== "" && esferaValida && cilindroValido;
 
     const handleAgregar = () => {
-        if (!puedeAgregar) return;
+        setErrorMsg("");
+
+        if (esfera === "" || cilindro === "") {
+            setErrorMsg("Completá los campos de esfera y cilindro.");
+            return;
+        }
+
+        if (!esferaValida || !cilindroValido) {
+            setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
+            return;
+        }
+
+        const cart = JSON.parse(localStorage.getItem("cart_extrarango") || "[]");
+        if (cart.length >= MAX_ITEMS_CARRITO) {
+            setErrorMsg(`El remito permite un máximo de ${MAX_ITEMS_CARRITO} productos. Eliminá un producto del carrito antes de agregar otro.`);
+            return;
+        }
+
         setAdding(true);
 
         const cartItem = {
@@ -145,7 +167,6 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
             totalUsd,
         };
 
-        const cart = JSON.parse(localStorage.getItem("cart_extrarango") || "[]");
         cart.push(cartItem);
         localStorage.setItem("cart_extrarango", JSON.stringify(cart));
         window.dispatchEvent(new Event("cartUpdated"));
@@ -222,16 +243,14 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
                                     Esfera (SPH)
                                 </label>
-                                <select
+                                <input
+                                    type="number"
+                                    step="0.25"
                                     value={esfera}
-                                    onChange={(e) => setEsfera(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent appearance-none"
-                                >
-                                    <option value="">Elegir...</option>
-                                    {esferaOpciones.map(v => (
-                                        <option key={v} value={v}>{v >= 0 ? `+${v.toFixed(2)}` : v.toFixed(2)}</option>
-                                    ))}
-                                </select>
+                                    onChange={(e) => { setEsfera(e.target.value); setErrorMsg(""); }}
+                                    placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
+                                    className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esfera !== "" && !esferaValida ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                                />
                                 <p className="text-[9px] text-gray-400 mt-1 ml-1">
                                     Rango: {esferaDesde >= 0 ? `+${esferaDesde.toFixed(2)}` : esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? `+${esferaHasta.toFixed(2)}` : esferaHasta.toFixed(2)}
                                 </p>
@@ -242,16 +261,14 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
                                     Cilindro (CYL)
                                 </label>
-                                <select
+                                <input
+                                    type="number"
+                                    step="0.25"
                                     value={cilindro}
-                                    onChange={(e) => setCilindro(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent appearance-none"
-                                >
-                                    <option value="">Elegir...</option>
-                                    {cilindroOpciones.map(v => (
-                                        <option key={v} value={v}>{v >= 0 ? `+${v.toFixed(2)}` : v.toFixed(2)}</option>
-                                    ))}
-                                </select>
+                                    onChange={(e) => { setCilindro(e.target.value); setErrorMsg(""); }}
+                                    placeholder="Ej: -1.00"
+                                    className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindro !== "" && !cilindroValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                                />
                                 <p className="text-[9px] text-gray-400 mt-1 ml-1">
                                     Hasta: {cilindroHasta.toFixed(2)}
                                 </p>
@@ -350,16 +367,22 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                         </div>
                     </div>
 
+                    {errorMsg && (
+                        <div className="mb-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-bold">
+                            ⚠️ {errorMsg}
+                        </div>
+                    )}
+
                     <button
                         onClick={handleAgregar}
-                        disabled={!puedeAgregar || adding}
-                        className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${puedeAgregar && !adding
+                        disabled={adding}
+                        className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${!adding
                             ? "bg-[#00D1C1] text-white hover:bg-[#00b8a9] shadow-[#00D1C1]/30"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}
                     >
                         <ShoppingCart size={18} />
-                        {adding ? "¡AGREGADO!" : !puedeAgregar ? "Completá la receta" : "Agregar al Pedido"}
+                        {adding ? "¡AGREGADO!" : "Agregar al Pedido"}
                     </button>
                 </div>
             </div>

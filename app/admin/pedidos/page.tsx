@@ -135,7 +135,7 @@ export default function GestorPedidos() {
                             <tr>
                                 <th className="px-6 py-4">ID</th>
                                 <th className="px-6 py-4">Cliente</th>
-                                <th className="px-6 py-4">Total USD</th>
+                                <th className="px-6 py-4">Total en ARS</th>
                                 <th className="px-6 py-4">Estado</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
@@ -209,15 +209,15 @@ export default function GestorPedidos() {
                                             </div>
                                             <div className="bg-white p-2">
                                                 <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Esf.</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.esfera !== null ? detalle.esfera : "-"}</span>
+                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.esfera !== null && detalle.esfera !== undefined ? Number(detalle.esfera).toFixed(2) : "-"}</span>
                                             </div>
                                             <div className="bg-white p-2">
                                                 <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cil.</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.cilindro !== null ? detalle.cilindro : "-"}</span>
+                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.cilindro !== null && detalle.cilindro !== undefined ? Number(detalle.cilindro).toFixed(2) : "-"}</span>
                                             </div>
                                             <div className="bg-white p-2">
                                                 <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Eje</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.eje !== null ? `${detalle.eje}°` : "-"}</span>
+                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.eje !== null && detalle.eje !== undefined ? `${detalle.eje}°` : "-"}</span>
                                             </div>
                                         </div>
                                         <div className="text-[10px] font-bold text-gray-400 mt-2 uppercase">Cantidad: {detalle.cantidad}</div>
