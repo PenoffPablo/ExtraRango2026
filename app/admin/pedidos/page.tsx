@@ -115,7 +115,7 @@ export default function GestorPedidos() {
 
                             <div className="flex justify-between items-center pt-4 border-t border-gray-50">
                                 <div className="font-black text-[#00D1C1] text-lg flex items-center">
-                                    <DollarSign size={16} />{Number(pedido.total_usd).toFixed(2)}
+                                    <DollarSign size={16} />{Number(pedido.total_ars).toFixed(2)}
                                 </div>
                                 <button
                                     onClick={() => setPedidoSeleccionado(pedido)}
