@@ -149,15 +149,34 @@ export default function Header() {
                                                                         {item.ojo === "AMBOS" ? "Par" : item.ojo}
                                                                     </span>
                                                                 )}
-                                                                {item.esfera !== undefined && item.esfera !== null && (
-                                                                    <span className="text-[9px] font-medium text-gray-400">
-                                                                        ESF:{item.esfera >= 0 ? `+${item.esfera}` : item.esfera}
-                                                                    </span>
-                                                                )}
-                                                                {item.cilindro !== undefined && item.cilindro !== null && (
-                                                                    <span className="text-[9px] font-medium text-gray-400">
-                                                                        CIL:{item.cilindro >= 0 ? `+${item.cilindro}` : item.cilindro}
-                                                                    </span>
+                                                                {/* Recetas separadas por ojo (AMBOS) */}
+                                                                {item.ojo === "AMBOS" && item.esferaOD !== undefined ? (
+                                                                    <div className="w-full flex flex-col gap-0.5 mt-0.5">
+                                                                        <span className="text-[9px] font-medium text-gray-400">
+                                                                            <span className="font-bold text-blue-500">OD:</span> ESF:{item.esferaOD >= 0 ? `+${item.esferaOD}` : item.esferaOD} CIL:{item.cilindroOD >= 0 ? `+${item.cilindroOD}` : item.cilindroOD}{item.adicionOD ? ` ADD:+${item.adicionOD}` : ''}
+                                                                        </span>
+                                                                        <span className="text-[9px] font-medium text-gray-400">
+                                                                            <span className="font-bold text-emerald-500">OI:</span> ESF:{item.esferaOI >= 0 ? `+${item.esferaOI}` : item.esferaOI} CIL:{item.cilindroOI >= 0 ? `+${item.cilindroOI}` : item.cilindroOI}{item.adicionOI ? ` ADD:+${item.adicionOI}` : ''}
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        {item.esfera !== undefined && item.esfera !== null && (
+                                                                            <span className="text-[9px] font-medium text-gray-400">
+                                                                                ESF:{item.esfera >= 0 ? `+${item.esfera}` : item.esfera}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.cilindro !== undefined && item.cilindro !== null && (
+                                                                            <span className="text-[9px] font-medium text-gray-400">
+                                                                                CIL:{item.cilindro >= 0 ? `+${item.cilindro}` : item.cilindro}
+                                                                            </span>
+                                                                        )}
+                                                                        {item.adicion !== undefined && item.adicion !== null && (
+                                                                            <span className="text-[9px] font-medium text-amber-500">
+                                                                                ADD:+{item.adicion}
+                                                                            </span>
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </div>
                                                             {item.tratamientos && item.tratamientos.length > 0 && (

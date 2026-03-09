@@ -52,6 +52,15 @@ export default function CheckoutAction() {
                 esfera: item.esfera ?? null,
                 cilindro: item.cilindro ?? null,
                 eje: item.eje ?? null,
+                esferaOD: item.esferaOD ?? null,
+                cilindroOD: item.cilindroOD ?? null,
+                ejeOD: item.ejeOD ?? null,
+                esferaOI: item.esferaOI ?? null,
+                cilindroOI: item.cilindroOI ?? null,
+                ejeOI: item.ejeOI ?? null,
+                adicion: item.adicion ?? null,
+                adicionOD: item.adicionOD ?? null,
+                adicionOI: item.adicionOI ?? null,
                 tratamientos: item.tratamientos || [],
             }))
         };

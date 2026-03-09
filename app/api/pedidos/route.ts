@@ -14,7 +14,39 @@ export async function POST(req: Request) {
         const cotizacion = Number(cotizacion_dolar);
         const totalUsd = Number(total_usd);
 
-        // 2. Crear Pedido con detalles
+        // 2. Expandir items: si un item tiene ojo="AMBOS" con recetas separadas (esferaOD/OI),
+        //    se desdobla en 2 detalles (uno para OD y otro para OI).
+        const expandedItems: any[] = [];
+        for (const item of items) {
+            if (item.ojo === "AMBOS" && item.esferaOD !== null && item.esferaOD !== undefined) {
+                // Desdoblamos en 2 líneas con el precio unitario (sin duplicar el total)
+                const precioUnitarioUsd = Number(item.precio);
+                expandedItems.push({
+                    ...item,
+                    ojo: "DERECHO",
+                    cantidad: 1,
+                    esfera: item.esferaOD,
+                    cilindro: item.cilindroOD,
+                    eje: item.ejeOD,
+                    adicion: item.adicionOD ?? item.adicion ?? null,
+                    precio: precioUnitarioUsd,
+                });
+                expandedItems.push({
+                    ...item,
+                    ojo: "IZQUIERDO",
+                    cantidad: 1,
+                    esfera: item.esferaOI,
+                    cilindro: item.cilindroOI,
+                    eje: item.ejeOI,
+                    adicion: item.adicionOI ?? item.adicion ?? null,
+                    precio: precioUnitarioUsd,
+                });
+            } else {
+                expandedItems.push(item);
+            }
+        }
+
+        // 3. Crear Pedido con detalles
         const nuevoPedido = await db.pedidos.create({
             data: {
                 usuario_id: Number(usuario_id),
@@ -24,7 +56,7 @@ export async function POST(req: Request) {
                 total_ars: totalUsd * cotizacion,
 
                 detalles_pedido: {
-                    create: items.map((item: any) => {
+                    create: expandedItems.map((item: any) => {
                         const precioUnitarioUsd = Number(item.precio);
                         const cantidad = Number(item.cantidad);
                         const subtotalUsd = precioUnitarioUsd * cantidad;
@@ -41,6 +73,7 @@ export async function POST(req: Request) {
                             esfera: item.esfera !== undefined && item.esfera !== null ? Number(item.esfera) : null,
                             cilindro: item.cilindro !== undefined && item.cilindro !== null ? Number(item.cilindro) : null,
                             eje: item.eje !== undefined && item.eje !== null ? Number(item.eje) : null,
+                            adicion: item.adicion !== undefined && item.adicion !== null ? Number(item.adicion) : null,
                         };
                     })
                 }
@@ -50,9 +83,10 @@ export async function POST(req: Request) {
             }
         });
 
-        // 3. Guardar tratamientos por cada detalle
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
+        // 4. Guardar tratamientos por cada detalle
+        //    Necesitamos mappear los expandedItems a los detalles creados
+        for (let i = 0; i < expandedItems.length; i++) {
+            const item = expandedItems[i];
             const detalle = nuevoPedido.detalles_pedido[i];
 
             if (item.tratamientos && item.tratamientos.length > 0 && detalle) {

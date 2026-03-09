@@ -38,9 +38,25 @@ function generarPasos(desde: number, hasta: number, paso: number = 0.25): number
 
 export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const [ojo, setOjo] = useState<"DERECHO" | "IZQUIERDO" | "AMBOS">("AMBOS");
+
+    // Campos para ojo único (DERECHO o IZQUIERDO)
     const [esfera, setEsfera] = useState<string>("");
     const [cilindro, setCilindro] = useState<string>("");
     const [eje, setEje] = useState<string>("");
+
+    // Campos separados para AMBOS ojos
+    const [esferaOD, setEsferaOD] = useState<string>("");
+    const [cilindroOD, setCilindroOD] = useState<string>("");
+    const [ejeOD, setEjeOD] = useState<string>("");
+    const [esferaOI, setEsferaOI] = useState<string>("");
+    const [cilindroOI, setCilindroOI] = useState<string>("");
+    const [ejeOI, setEjeOI] = useState<string>("");
+
+    // Campo de adición para bifocales/multifocales
+    const [adicion, setAdicion] = useState<string>("");
+    const [adicionOD, setAdicionOD] = useState<string>("");
+    const [adicionOI, setAdicionOI] = useState<string>("");
+
     const [tratamientosSeleccionados, setTratamientosSeleccionados] = useState<number[]>([]);
     const [tratamientos, setTratamientos] = useState<Tratamiento[]>([]);
     const [loadingTrat, setLoadingTrat] = useState(true);
@@ -78,6 +94,18 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const esferaDesde = Number(producto.esfera_desde || 0);
     const esferaHasta = Number(producto.esfera_hasta || 0);
     const cilindroHasta = Number(producto.cilindro_hasta || 0);
+
+    // Detectar si el producto requiere adición (bifocal, multifocal, ocupacional)
+    const requiereAdicion = useMemo(() => {
+        const linea = (producto.linea || "").toLowerCase();
+        return linea.includes("bifocal") || linea.includes("multifocal") || linea.includes("ocupacional");
+    }, [producto.linea]);
+
+    const adicionValida = (val: string) => {
+        if (val === "") return false;
+        const n = Number(val);
+        return n >= 0.75 && n <= 3.50;
+    };
 
     const esferaOpciones = useMemo(() => generarPasos(esferaDesde, esferaHasta), [esferaDesde, esferaHasta]);
     const cilindroOpciones = useMemo(() => {
@@ -120,21 +148,73 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
 
     const MAX_ITEMS_CARRITO = 5;
 
+    // Función para validar la combinación ESF + CIL (potencia meridional)
+    const combinacionValida = (esf: string, cil: string) => {
+        if (esf === "" || cil === "") return true; // No validar si están vacíos
+        const suma = Number(esf) + Number(cil);
+        return suma >= esferaDesde && suma <= esferaHasta;
+    };
+
+    // Validaciones para ojo único
     const esferaValida = esfera !== "" && Number(esfera) >= esferaDesde && Number(esfera) <= esferaHasta;
     const cilindroValido = cilindro !== "" && Number(cilindro) >= Math.min(cilindroHasta, 0) && Number(cilindro) <= Math.max(cilindroHasta, 0);
-    const puedeAgregar = esfera !== "" && cilindro !== "" && esferaValida && cilindroValido;
+    const combinacionOkSingle = combinacionValida(esfera, cilindro);
+
+    // Validaciones para AMBOS - OD
+    const esferaODValida = esferaOD !== "" && Number(esferaOD) >= esferaDesde && Number(esferaOD) <= esferaHasta;
+    const cilindroODValido = cilindroOD !== "" && Number(cilindroOD) >= Math.min(cilindroHasta, 0) && Number(cilindroOD) <= Math.max(cilindroHasta, 0);
+    const combinacionOkOD = combinacionValida(esferaOD, cilindroOD);
+
+    // Validaciones para AMBOS - OI
+    const esferaOIValida = esferaOI !== "" && Number(esferaOI) >= esferaDesde && Number(esferaOI) <= esferaHasta;
+    const cilindroOIValido = cilindroOI !== "" && Number(cilindroOI) >= Math.min(cilindroHasta, 0) && Number(cilindroOI) <= Math.max(cilindroHasta, 0);
+    const combinacionOkOI = combinacionValida(esferaOI, cilindroOI);
+
+    const puedeAgregar = ojo === "AMBOS"
+        ? (esferaOD !== "" && cilindroOD !== "" && esferaODValida && cilindroODValido && combinacionOkOD &&
+            esferaOI !== "" && cilindroOI !== "" && esferaOIValida && cilindroOIValido && combinacionOkOI &&
+            (!requiereAdicion || (adicionValida(adicionOD) && adicionValida(adicionOI))))
+        : (esfera !== "" && cilindro !== "" && esferaValida && cilindroValido && combinacionOkSingle &&
+            (!requiereAdicion || adicionValida(adicion)));
 
     const handleAgregar = () => {
         setErrorMsg("");
 
-        if (esfera === "" || cilindro === "") {
-            setErrorMsg("Completá los campos de esfera y cilindro.");
-            return;
-        }
-
-        if (!esferaValida || !cilindroValido) {
-            setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
-            return;
+        if (ojo === "AMBOS") {
+            if (esferaOD === "" || cilindroOD === "" || esferaOI === "" || cilindroOI === "") {
+                setErrorMsg("Completá los campos de esfera y cilindro para ambos ojos.");
+                return;
+            }
+            if (!esferaODValida || !cilindroODValido || !esferaOIValida || !cilindroOIValido) {
+                setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
+                return;
+            }
+            if (!combinacionOkOD || !combinacionOkOI) {
+                const ojoProblema = !combinacionOkOD && !combinacionOkOI ? "ambos ojos" : !combinacionOkOD ? "el ojo derecho" : "el ojo izquierdo";
+                setErrorMsg(`La combinación ESF + CIL de ${ojoProblema} excede el rango del producto (${esferaDesde.toFixed(2)} a ${esferaHasta >= 0 ? '+' : ''}${esferaHasta.toFixed(2)}). La potencia total (ESF+CIL) debe estar dentro del rango de esfera del cristal.`);
+                return;
+            }
+            if (requiereAdicion && (!adicionValida(adicionOD) || !adicionValida(adicionOI))) {
+                setErrorMsg("Completá la adición (ADD) para ambos ojos. El rango válido es +0.75 a +3.50.");
+                return;
+            }
+        } else {
+            if (esfera === "" || cilindro === "") {
+                setErrorMsg("Completá los campos de esfera y cilindro.");
+                return;
+            }
+            if (!esferaValida || !cilindroValido) {
+                setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
+                return;
+            }
+            if (!combinacionOkSingle) {
+                setErrorMsg(`La combinación ESF + CIL (${(Number(esfera) + Number(cilindro)).toFixed(2)}) excede el rango del producto (${esferaDesde.toFixed(2)} a ${esferaHasta >= 0 ? '+' : ''}${esferaHasta.toFixed(2)}). La potencia total (ESF+CIL) debe estar dentro del rango de esfera del cristal.`);
+                return;
+            }
+            if (requiereAdicion && !adicionValida(adicion)) {
+                setErrorMsg("Completá la adición (ADD). El rango válido es +0.75 a +3.50.");
+                return;
+            }
         }
 
         const cart = JSON.parse(localStorage.getItem("cart_extrarango") || "[]");
@@ -145,29 +225,66 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
 
         setAdding(true);
 
-        const cartItem = {
-            cartItemId: `${producto.id}_${Date.now()}`,
-            productoId: producto.id,
-            nombre: producto.nombre,
-            material: producto.material,
-            linea: producto.linea,
-            precioBaseUsd: precioBaseUsd,
-            ojo,
-            esfera: Number(esfera),
-            cilindro: Number(cilindro),
-            eje: eje ? Number(eje) : null,
-            cantidad,
-            tratamientos: tratamientosSeleccionadosData.map(t => ({
-                id: t.id,
-                nombre: t.nombre,
-                precio_usd: t.precio_usd,
-            })),
-            totalTratamientosUsd,
-            precioUnitarioUsd: precioBaseUsd + totalTratamientosUsd,
-            totalUsd,
-        };
+        const tratamientosData = tratamientosSeleccionadosData.map(t => ({
+            id: t.id,
+            nombre: t.nombre,
+            precio_usd: t.precio_usd,
+        }));
 
-        cart.push(cartItem);
+        if (ojo === "AMBOS") {
+            // Guardar con recetas separadas por ojo
+            const cartItem = {
+                cartItemId: `${producto.id}_${Date.now()}`,
+                productoId: producto.id,
+                nombre: producto.nombre,
+                material: producto.material,
+                linea: producto.linea,
+                precioBaseUsd: precioBaseUsd,
+                ojo: "AMBOS",
+                cantidad: 2,
+                // Receta OD
+                esferaOD: Number(esferaOD),
+                cilindroOD: Number(cilindroOD),
+                ejeOD: ejeOD ? Number(ejeOD) : null,
+                adicionOD: requiereAdicion && adicionOD ? Number(adicionOD) : null,
+                // Receta OI
+                esferaOI: Number(esferaOI),
+                cilindroOI: Number(cilindroOI),
+                ejeOI: ejeOI ? Number(ejeOI) : null,
+                adicionOI: requiereAdicion && adicionOI ? Number(adicionOI) : null,
+                // Mantener campos legacy para compatibilidad (null indica recetas separadas)
+                esfera: null,
+                cilindro: null,
+                eje: null,
+                adicion: null,
+                tratamientos: tratamientosData,
+                totalTratamientosUsd,
+                precioUnitarioUsd: precioBaseUsd + totalTratamientosUsd,
+                totalUsd,
+            };
+            cart.push(cartItem);
+        } else {
+            const cartItem = {
+                cartItemId: `${producto.id}_${Date.now()}`,
+                productoId: producto.id,
+                nombre: producto.nombre,
+                material: producto.material,
+                linea: producto.linea,
+                precioBaseUsd: precioBaseUsd,
+                ojo,
+                esfera: Number(esfera),
+                cilindro: Number(cilindro),
+                eje: eje ? Number(eje) : null,
+                adicion: requiereAdicion && adicion ? Number(adicion) : null,
+                cantidad: 1,
+                tratamientos: tratamientosData,
+                totalTratamientosUsd,
+                precioUnitarioUsd: precioBaseUsd + totalTratamientosUsd,
+                totalUsd,
+            };
+            cart.push(cartItem);
+        }
+
         localStorage.setItem("cart_extrarango", JSON.stringify(cart));
         window.dispatchEvent(new Event("cartUpdated"));
 
@@ -175,6 +292,136 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
             setAdding(false);
             onClose();
         }, 400);
+    };
+
+    // Componente reutilizable para los campos de receta de un ojo
+    const CamposReceta = ({
+        label,
+        esferaVal,
+        setEsferaVal,
+        cilindroVal,
+        setCilindroVal,
+        ejeVal,
+        setEjeVal,
+        adicionVal,
+        setAdicionVal,
+        esferaEsValida,
+        cilindroEsValido,
+        combinacionOk,
+        color,
+    }: {
+        label: string;
+        esferaVal: string;
+        setEsferaVal: (v: string) => void;
+        cilindroVal: string;
+        setCilindroVal: (v: string) => void;
+        ejeVal: string;
+        setEjeVal: (v: string) => void;
+        adicionVal: string;
+        setAdicionVal: (v: string) => void;
+        esferaEsValida: boolean;
+        cilindroEsValido: boolean;
+        combinacionOk: boolean;
+        color: string;
+    }) => {
+        const sumaEsfCil = esferaVal !== "" && cilindroVal !== "" ? Number(esferaVal) + Number(cilindroVal) : null;
+        return (
+            <div>
+                <div className={`flex items-center gap-2 mb-2 px-1`}>
+                    <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-gray-500">{label}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                    {/* Esfera */}
+                    <div>
+                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                            Esfera (SPH)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.25"
+                            value={esferaVal}
+                            onChange={(e) => { setEsferaVal(e.target.value); setErrorMsg(""); }}
+                            placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
+                            className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esferaVal !== "" && !esferaEsValida ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                        />
+                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                            Rango: {esferaDesde >= 0 ? `+${esferaDesde.toFixed(2)}` : esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? `+${esferaHasta.toFixed(2)}` : esferaHasta.toFixed(2)}
+                        </p>
+                    </div>
+
+                    {/* Cilindro */}
+                    <div>
+                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                            Cilindro (CYL)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.25"
+                            value={cilindroVal}
+                            onChange={(e) => { setCilindroVal(e.target.value); setErrorMsg(""); }}
+                            placeholder="Ej: -1.00"
+                            className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindroVal !== "" && !cilindroEsValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                        />
+                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                            Hasta: {cilindroHasta.toFixed(2)}
+                        </p>
+                    </div>
+
+                    {/* Eje */}
+                    <div>
+                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                            Eje (AXIS)
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            max="180"
+                            value={ejeVal}
+                            onChange={(e) => setEjeVal(e.target.value)}
+                            placeholder="0-180°"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent"
+                        />
+                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                            0° a 180°
+                        </p>
+                    </div>
+                </div>
+                {/* ADD - Adición (solo bifocales/multifocales) */}
+                {requiereAdicion && (
+                    <div className="mt-3">
+                        <label className="text-[10px] font-bold text-amber-600 mb-1 block ml-1">
+                            🔶 Adición (ADD)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.25"
+                            min="0.75"
+                            max="3.50"
+                            value={adicionVal}
+                            onChange={(e) => { setAdicionVal(e.target.value); setErrorMsg(""); }}
+                            placeholder="Ej: +2.00"
+                            className={`w-full max-w-[200px] bg-amber-50/50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${adicionVal !== "" && !adicionValida(adicionVal) ? "border-red-400 bg-red-50/50" : "border-amber-200"}`}
+                        />
+                        <p className="text-[9px] text-amber-500 mt-1 ml-1">
+                            Rango: +0.75 a +3.50 (pasos de 0.25)
+                        </p>
+                    </div>
+                )}
+                {/* Indicador de potencia combinada ESF+CIL */}
+                {sumaEsfCil !== null && (
+                    <div className={`mt-2 px-3 py-2 rounded-lg text-[10px] font-bold flex items-center gap-2 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
+                        <span>Potencia meridional (ESF+CIL):</span>
+                        <span className={`font-black ${!combinacionOk ? "text-red-700" : "text-[#1F4E79]"}`}>
+                            {sumaEsfCil >= 0 ? `+${sumaEsfCil.toFixed(2)}` : sumaEsfCil.toFixed(2)}
+                        </span>
+                        {!combinacionOk && (
+                            <span className="text-red-500 ml-1">⚠ Fuera de rango ({esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)})</span>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -228,7 +475,9 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                             ))}
                         </div>
                         {ojo === "AMBOS" && (
-                            <p className="text-[10px] text-gray-400 mt-2 font-medium">Se aplica la misma receta a ambos ojos (2 unidades)</p>
+                            <p className="text-[10px] text-[#00D1C1] mt-2 font-semibold">
+                                ✦ Cargá la receta de cada ojo por separado
+                            </p>
                         )}
                     </div>
 
@@ -237,65 +486,142 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
                             Datos de Receta
                         </label>
-                        <div className="grid grid-cols-3 gap-3">
-                            {/* Esfera */}
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
-                                    Esfera (SPH)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.25"
-                                    value={esfera}
-                                    onChange={(e) => { setEsfera(e.target.value); setErrorMsg(""); }}
-                                    placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
-                                    className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esfera !== "" && !esferaValida ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
-                                />
-                                <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                                    Rango: {esferaDesde >= 0 ? `+${esferaDesde.toFixed(2)}` : esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? `+${esferaHasta.toFixed(2)}` : esferaHasta.toFixed(2)}
-                                </p>
-                            </div>
 
-                            {/* Cilindro */}
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
-                                    Cilindro (CYL)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.25"
-                                    value={cilindro}
-                                    onChange={(e) => { setCilindro(e.target.value); setErrorMsg(""); }}
-                                    placeholder="Ej: -1.00"
-                                    className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindro !== "" && !cilindroValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
-                                />
-                                <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                                    Hasta: {cilindroHasta.toFixed(2)}
-                                </p>
-                            </div>
+                        {ojo === "AMBOS" ? (
+                            <div className="space-y-5">
+                                {/* OD - Ojo Derecho */}
+                                <div className="bg-blue-50/40 border border-blue-100 rounded-2xl p-4">
+                                    <CamposReceta
+                                        label="Ojo Derecho (OD)"
+                                        esferaVal={esferaOD}
+                                        setEsferaVal={setEsferaOD}
+                                        cilindroVal={cilindroOD}
+                                        setCilindroVal={setCilindroOD}
+                                        ejeVal={ejeOD}
+                                        setEjeVal={setEjeOD}
+                                        adicionVal={adicionOD}
+                                        setAdicionVal={setAdicionOD}
+                                        esferaEsValida={esferaODValida}
+                                        cilindroEsValido={cilindroODValido}
+                                        combinacionOk={combinacionOkOD}
+                                        color="bg-blue-500"
+                                    />
+                                </div>
 
-                            {/* Eje */}
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
-                                    Eje (AXIS)
-                                </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="180"
-                                    value={eje}
-                                    onChange={(e) => setEje(e.target.value)}
-                                    placeholder="0-180°"
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent"
-                                />
-                                <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                                    0° a 180°
-                                </p>
+                                {/* OI - Ojo Izquierdo */}
+                                <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4">
+                                    <CamposReceta
+                                        label="Ojo Izquierdo (OI)"
+                                        esferaVal={esferaOI}
+                                        setEsferaVal={setEsferaOI}
+                                        cilindroVal={cilindroOI}
+                                        setCilindroVal={setCilindroOI}
+                                        ejeVal={ejeOI}
+                                        setEjeVal={setEjeOI}
+                                        adicionVal={adicionOI}
+                                        setAdicionVal={setAdicionOI}
+                                        esferaEsValida={esferaOIValida}
+                                        cilindroEsValido={cilindroOIValido}
+                                        combinacionOk={combinacionOkOI}
+                                        color="bg-emerald-500"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            /* Ojo único */
+                            <>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {/* Esfera */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                                            Esfera (SPH)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.25"
+                                            value={esfera}
+                                            onChange={(e) => { setEsfera(e.target.value); setErrorMsg(""); }}
+                                            placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
+                                            className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esfera !== "" && !esferaValida ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                                        />
+                                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                                            Rango: {esferaDesde >= 0 ? `+${esferaDesde.toFixed(2)}` : esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? `+${esferaHasta.toFixed(2)}` : esferaHasta.toFixed(2)}
+                                        </p>
+                                    </div>
+
+                                    {/* Cilindro */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                                            Cilindro (CYL)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.25"
+                                            value={cilindro}
+                                            onChange={(e) => { setCilindro(e.target.value); setErrorMsg(""); }}
+                                            placeholder="Ej: -1.00"
+                                            className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindro !== "" && !cilindroValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                                        />
+                                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                                            Hasta: {cilindroHasta.toFixed(2)}
+                                        </p>
+                                    </div>
+
+                                    {/* Eje */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
+                                            Eje (AXIS)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="180"
+                                            value={eje}
+                                            onChange={(e) => setEje(e.target.value)}
+                                            placeholder="0-180°"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent"
+                                        />
+                                        <p className="text-[9px] text-gray-400 mt-1 ml-1">
+                                            0° a 180°
+                                        </p>
+                                    </div>
+                                </div>
+                                {/* Indicador de potencia combinada ESF+CIL - ojo único */}
+                                {esfera !== "" && cilindro !== "" && (
+                                    <div className={`mt-3 px-3 py-2 rounded-lg text-[10px] font-bold flex items-center gap-2 ${!combinacionOkSingle ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
+                                        <span>Potencia meridional (ESF+CIL):</span>
+                                        <span className={`font-black ${!combinacionOkSingle ? "text-red-700" : "text-[#1F4E79]"}`}>
+                                            {(Number(esfera) + Number(cilindro)) >= 0 ? `+${(Number(esfera) + Number(cilindro)).toFixed(2)}` : (Number(esfera) + Number(cilindro)).toFixed(2)}
+                                        </span>
+                                        {!combinacionOkSingle && (
+                                            <span className="text-red-500 ml-1">⚠ Fuera de rango ({esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)})</span>
+                                        )}
+                                    </div>
+                                )}
+                                {/* ADD - Adición - Ojo único */}
+                                {requiereAdicion && (
+                                    <div className="mt-3">
+                                        <label className="text-[10px] font-bold text-amber-600 mb-1 block ml-1">
+                                            🔶 Adición (ADD)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.25"
+                                            min="0.75"
+                                            max="3.50"
+                                            value={adicion}
+                                            onChange={(e) => { setAdicion(e.target.value); setErrorMsg(""); }}
+                                            placeholder="Ej: +2.00"
+                                            className={`w-full max-w-[200px] bg-amber-50/50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${adicion !== "" && !adicionValida(adicion) ? "border-red-400 bg-red-50/50" : "border-amber-200"}`}
+                                        />
+                                        <p className="text-[9px] text-amber-500 mt-1 ml-1">
+                                            Rango: +0.75 a +3.50 (pasos de 0.25)
+                                        </p>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
-
-                    {/* Tratamientos */}
                     <div>
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">
                             <Plus size={12} className="inline mr-1 -mt-0.5" />
@@ -386,6 +712,6 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

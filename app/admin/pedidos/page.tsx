@@ -202,7 +202,7 @@ export default function GestorPedidos() {
                                             <p className="font-mono font-black text-gray-700 whitespace-nowrap text-sm">$ {Number(detalle.precio_unitario_ars).toFixed(2)}</p>
                                         </div>
 
-                                        <div className="grid grid-cols-4 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200 text-center">
+                                        <div className="grid grid-cols-5 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200 text-center">
                                             <div className="bg-white p-2">
                                                 <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Ojo</span>
                                                 <span className="font-black text-[#1F4E79] text-xs md:text-sm">{detalle.ojo}</span>
@@ -218,6 +218,10 @@ export default function GestorPedidos() {
                                             <div className="bg-white p-2">
                                                 <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Eje</span>
                                                 <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.eje !== null && detalle.eje !== undefined ? `${detalle.eje}°` : "-"}</span>
+                                            </div>
+                                            <div className="bg-white p-2">
+                                                <span className="block text-[8px] md:text-[9px] font-bold text-amber-500 uppercase tracking-wider">ADD</span>
+                                                <span className="font-medium text-amber-600 text-xs md:text-sm">{detalle.adicion !== null && detalle.adicion !== undefined ? `+${Number(detalle.adicion).toFixed(2)}` : "-"}</span>
                                             </div>
                                         </div>
                                         <div className="text-[10px] font-bold text-gray-400 mt-2 uppercase">Cantidad: {detalle.cantidad}</div>

@@ -123,7 +123,7 @@ export default function RemitoPage() {
                     IMPRIMIR / GUARDAR PDF
                 </button>
                 <p className="text-gray-400 text-sm mt-2">
-                    Tip: En la ventana que se abre, selecciona "Destino: Guardar como PDF"
+                    Tip: En la ventana que se abre, selecciona &quot;Destino: Guardar como PDF&quot;
                 </p>
             </div>
             <div className="remito-container">
@@ -143,7 +143,7 @@ export default function RemitoPage() {
                     <div className="w-1/2 pl-8 text-right flex flex-col justify-between">
                         <div>
                             <div className="font-bold text-lg mb-1">REMITO</div>
-                            <div className="text-[10px] font-bold uppercase mb-4">"Documento no válido como factura"</div>
+                            <div className="text-[10px] font-bold uppercase mb-4">&quot;Documento no válido como factura&quot;</div>
                             <div className="text-xl font-mono font-bold">
                                 Nro: {String(pedido.id).padStart(4, '0')} - {String(pedido.id).padStart(8, '0')}
                             </div>
@@ -201,8 +201,11 @@ export default function RemitoPage() {
                                     <div className="text-[10px] text-gray-500">{item.productos?.codigo_sku}</div>
                                 </td>
                                 <td className="text-center text-[10px]">
-                                    {item.ojo !== 'AMBOS' && <div>Ojo: {item.ojo}</div>}
-                                    {item.esfera && <div>Esf: {item.esfera}</div>}
+                                    <div>Ojo: {item.ojo}</div>
+                                    {item.esfera !== null && item.esfera !== undefined && <div>Esf: {Number(item.esfera).toFixed(2)}</div>}
+                                    {item.cilindro !== null && item.cilindro !== undefined && <div>Cil: {Number(item.cilindro).toFixed(2)}</div>}
+                                    {item.eje !== null && item.eje !== undefined && <div>Eje: {item.eje}°</div>}
+                                    {item.adicion !== null && item.adicion !== undefined && <div className="font-bold text-amber-700">ADD: +{Number(item.adicion).toFixed(2)}</div>}
                                 </td>
                                 <td className="text-right font-mono">
                                     ${(Number(item.precio_unitario_usd) * Number(pedido.cotizacion_dolar_dia)).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
