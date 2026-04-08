@@ -201,7 +201,7 @@ export default function RemitoPage() {
                                     <div className="text-[10px] text-gray-500">{item.productos?.codigo_sku}</div>
                                 </td>
                                 <td className="text-center text-[10px]">
-                                    <div>Ojo: {item.ojo}</div>
+                                    <div className="font-bold">{item.ojo === "AMBOS" ? "PAR" : `UNIDAD (${item.ojo})`}</div>
                                     {item.esfera !== null && item.esfera !== undefined && <div>Esf: {Number(item.esfera).toFixed(2)}</div>}
                                     {item.cilindro !== null && item.cilindro !== undefined && <div>Cil: {Number(item.cilindro).toFixed(2)}</div>}
                                     {item.eje !== null && item.eje !== undefined && <div>Eje: {item.eje}°</div>}

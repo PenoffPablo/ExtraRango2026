@@ -22,6 +22,12 @@ model detalles_pedido {
   cilindro            Decimal?            @db.Decimal(5, 2)
   eje                 Int?
   adicion             Decimal?            @db.Decimal(4, 2)
+  prisma              Decimal?            @db.Decimal(5, 2)
+  eje_prisma          Int?
+  armazon_transversal Decimal?            @db.Decimal(5, 2)
+  armazon_altura      Decimal?            @db.Decimal(5, 2)
+  armazon_diagonal    Decimal?            @db.Decimal(5, 2)
+  armazon_puente      Decimal?            @db.Decimal(5, 2)
   pedidos             pedidos             @relation(fields: [pedido_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "detalles_pedido_ibfk_1")
   productos           productos           @relation(fields: [producto_id], references: [id], onUpdate: Restrict, map: "detalles_pedido_ibfk_2")
   detalles_pedido_tratamientos detalles_pedido_tratamientos[]

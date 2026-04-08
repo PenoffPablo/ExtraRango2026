@@ -145,8 +145,8 @@ export default function Header() {
                                                             <p className="font-bold text-[#1F4E79] truncate text-xs">{item.nombre}</p>
                                                             <div className="flex flex-wrap gap-1 mt-1">
                                                                 {item.ojo && (
-                                                                    <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
-                                                                        {item.ojo === "AMBOS" ? "Par" : item.ojo}
+                                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.ojo === "AMBOS" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"}`}>
+                                                                        {item.ojo === "AMBOS" ? "PAR" : `UNIDAD (${item.ojo})`}
                                                                     </span>
                                                                 )}
                                                                 {/* Recetas separadas por ojo (AMBOS) */}

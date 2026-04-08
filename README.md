@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ExtraRango - Ecommerce Óptico B2B
 
-## Getting Started
+ExtraRango es una plataforma avanzada de cotización y venta de cristales ópticos para laboratorios y ópticas.
 
-First, run the development server:
+## 🚀 Documentación Técnica
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+He organizado la documentación del proyecto en los siguientes manuales específicos para facilitar su mantenimiento:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 🏗️ **[Arquitectura del Sistema](docs/ARCHITECTURE.md)**: Stack tecnológico y flujos de datos.
+- ⚖️ **[Reglas de Negocio](docs/BUSINESS_RULES.md)**: Cotización, compatibilidad de materiales y validaciones ópticas.
+- 📊 **[Esquema de Base de Datos](docs/DATABASE_SCHEMA.md)**: Modelos de Prisma y estructura relacional.
+- 🧪 **[Arsenal de Testing](docs/TESTING.md)**: Guía para ejecutar y crear pruebas automatizadas con Vitest.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Instalación y Desarrollo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Clonar el repositorio**:
+    ```bash
+    git clone [url-del-repositorio]
+    cd extrarango
+    ```
 
-## Learn More
+2.  **Instalar dependencias**:
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Configurar base de datos**:
+    - Crea un archivo `.env` basado en `.env.example` (si existe) con tu `DATABASE_URL`.
+    - Sincroniza el esquema:
+    ```bash
+    npx prisma db push
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4.  **Iniciar servidor de desarrollo**:
+    ```bash
+    npm run dev
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5.  **Ejecutar Tests**:
+    ```bash
+    npm test
+    ```
 
-## Deploy on Vercel
+## ✨ Características Principales
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Cotización Dinámica**: Precios en ARS basados en cotización de dolar diaria.
+- **Configurador Óptico**: Soporte para Prisma, Adición (ADD) y validación de Potencia Meridional.
+- **Medidas de Armazón**: Captura de distancias físicas (A, B, ED, DBL) para montajes precisos.
+- **Carrito Inteligente**: Desdoblamiento automático de pedidos por ojo para laboratorio.

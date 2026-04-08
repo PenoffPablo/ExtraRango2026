@@ -29,6 +29,8 @@ export async function POST(req: Request) {
                     cilindro: item.cilindroOD,
                     eje: item.ejeOD,
                     adicion: item.adicionOD ?? item.adicion ?? null,
+                    prisma: item.prismaOD ?? item.prisma ?? null,
+                    eje_prisma: item.ejePrismaOD ?? item.ejePrisma ?? null,
                     precio: precioUnitarioUsd,
                 });
                 expandedItems.push({
@@ -39,6 +41,8 @@ export async function POST(req: Request) {
                     cilindro: item.cilindroOI,
                     eje: item.ejeOI,
                     adicion: item.adicionOI ?? item.adicion ?? null,
+                    prisma: item.prismaOI ?? item.prisma ?? null,
+                    eje_prisma: item.ejePrismaOI ?? item.ejePrisma ?? null,
                     precio: precioUnitarioUsd,
                 });
             } else {
@@ -74,6 +78,12 @@ export async function POST(req: Request) {
                             cilindro: item.cilindro !== undefined && item.cilindro !== null ? Number(item.cilindro) : null,
                             eje: item.eje !== undefined && item.eje !== null ? Number(item.eje) : null,
                             adicion: item.adicion !== undefined && item.adicion !== null ? Number(item.adicion) : null,
+                            prisma: item.prisma !== undefined && item.prisma !== null ? Number(item.prisma) : null,
+                            eje_prisma: item.eje_prisma !== undefined && item.eje_prisma !== null ? Number(item.eje_prisma) : null,
+                            armazon_transversal: item.armazonTransversal !== undefined && item.armazonTransversal !== null ? Number(item.armazonTransversal) : null,
+                            armazon_altura: item.armazonAltura !== undefined && item.armazonAltura !== null ? Number(item.armazonAltura) : null,
+                            armazon_diagonal: item.armazonDiagonal !== undefined && item.armazonDiagonal !== null ? Number(item.armazonDiagonal) : null,
+                            armazon_puente: item.armazonPuente !== undefined && item.armazonPuente !== null ? Number(item.armazonPuente) : null,
                         };
                     })
                 }

@@ -209,7 +209,7 @@ export default function Hero({ productos }: HeroProps) {
                                     <div className="text-2xl font-black text-[#00D1C1] tracking-tighter">
                                         ${p.precio_ars || "Consultar"}
                                     </div>
-                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">precio base / unidad</p>
+                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">precio base / par</p>
                                 </div>
 
                                 <div className="col-span-3 text-right">
