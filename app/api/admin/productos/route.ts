@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         const {
             nombre, codigo_sku, descripcion,
             material, linea, precio_base_usd,
-            imagen_url, stock_actual
+            stock_actual, suma_max_pos, suma_max_neg
         } = body;
 
         if (!nombre || !precio_base_usd) {
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
                 linea,
                 precio_base_usd: Number(precio_base_usd),
                 stock_actual: Number(stock_actual) || 0,
-                imagen_url,
-                estado: true
+                suma_max_pos: suma_max_pos ? Number(suma_max_pos) : null,
+                suma_max_neg: suma_max_neg ? Number(suma_max_neg) : null,
             }
         });
 

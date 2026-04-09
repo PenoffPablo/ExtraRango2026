@@ -27,6 +27,8 @@ export default async function Home() {
         esfera_desde: p.esfera_desde?.toString() || null,
         esfera_hasta: p.esfera_hasta?.toString() || null,
         cilindro_hasta: p.cilindro_hasta?.toString() || null,
+        suma_max_pos: p.suma_max_pos?.toString() || null,
+        suma_max_neg: p.suma_max_neg?.toString() || null,
       };
     });
 

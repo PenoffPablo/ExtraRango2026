@@ -8,6 +8,7 @@ import {
     ClipboardList
 } from "lucide-react";
 import CheckoutAction from "./Cart";
+import SuccessModal from "./SuccessModal";
 
 export default function Header() {
     const router = useRouter();
@@ -18,6 +19,8 @@ export default function Header() {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [cartItems, setCartItems] = useState<any[]>([]);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [lastOrderId, setLastOrderId] = useState("");
 
     const totalItems = cartItems.reduce((acc, item) => acc + (item.cantidad || item.quantity || 1), 0);
     const totalAmount = cartItems.reduce((acc, item) => {
@@ -59,13 +62,21 @@ export default function Header() {
         checkUser();
         updateCart();
 
+        const handleOrderSuccess = (e: any) => {
+            setLastOrderId(e.detail.pedidoId);
+            setShowSuccess(true);
+            setIsCartOpen(false); // Cerrar el carrito automáticamente
+        };
+
         window.addEventListener("userLogin", checkUser);
         window.addEventListener("cartUpdated", updateCart);
+        window.addEventListener("orderSuccess", handleOrderSuccess);
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
             window.removeEventListener("userLogin", checkUser);
             window.removeEventListener("cartUpdated", updateCart);
+            window.removeEventListener("orderSuccess", handleOrderSuccess);
         };
     }, []);
 
@@ -345,6 +356,13 @@ export default function Header() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {showSuccess && (
+                <SuccessModal 
+                    pedidoId={lastOrderId} 
+                    onClose={() => setShowSuccess(false)} 
+                />
             )}
         </header>
     );

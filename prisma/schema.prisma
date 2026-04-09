@@ -65,8 +65,8 @@ model productos {
   cilindro_hasta    Decimal?          @db.Decimal(5, 2)
   precio_base_usd   Decimal           @db.Decimal(10, 4)
   stock_actual      Int?              @default(0)
-  imagen_url        String?           @db.VarChar(255)
-  estado            Boolean?          @default(true)
+  suma_max_pos      Decimal?          @db.Decimal(5, 2)
+  suma_max_neg      Decimal?          @db.Decimal(5, 2)
   detalles_pedido   detalles_pedido[]
 
   @@index([material], map: "idx_productos_material")

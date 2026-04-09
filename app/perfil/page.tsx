@@ -229,9 +229,10 @@ export default function PerfilPage() {
                                             <div className="bg-[#1F4E79] text-white text-[10px] font-black px-2 py-1 rounded">
                                                 #{pedido.id}
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                                                <Calendar size={12} />
-                                                {new Date(pedido.fecha_pedido).toLocaleDateString()}
+                                            <div className="flex items-center gap-1.5 text-xs text-gray-700 bg-white/50 px-2.5 py-1 rounded-lg border border-gray-100 font-bold">
+                                                <Calendar size={12} className="text-[#00D1C1]" />
+                                                <span className="text-[10px] text-gray-400 uppercase tracking-tighter mr-0.5">Fecha:</span>
+                                                {new Date(pedido.fecha_pedido).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                             </div>
                                             {pedido.estado === "PENDIENTE" && (
                                                 <button

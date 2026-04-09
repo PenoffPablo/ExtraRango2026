@@ -78,8 +78,11 @@ export default function CheckoutAction() {
                 localStorage.removeItem("cart_extrarango");
                 window.dispatchEvent(new Event("cartUpdated"));
 
-                alert(`¡Pedido #${data.pedidoId} creado con éxito!`);
-                router.push("/perfil")
+                // Despachar evento global para que el Header (que siempre está montado) muestre el modal
+                const successEvent = new CustomEvent("orderSuccess", { 
+                    detail: { pedidoId: data.pedidoId } 
+                });
+                window.dispatchEvent(successEvent);
             } else {
                 throw new Error(data.error || "Error al procesar");
             }

@@ -13,6 +13,8 @@ type Producto = {
     cilindro_hasta: string | null;
     precio_base_usd: string;
     precio_ars?: string;
+    suma_max_pos?: number; // Nueva regla de suma meridional (+)
+    suma_max_neg?: number; // Nueva regla de suma meridional (-)
 };
 
 type Tratamiento = {
@@ -60,6 +62,7 @@ const CamposReceta = ({
     setPrismaVal,
     ejePrismaVal,
     setEjePrismaVal,
+    producto,
 }: {
     label: string;
     esferaVal: string;
@@ -83,6 +86,7 @@ const CamposReceta = ({
     setPrismaVal: (v: string) => void;
     ejePrismaVal: string;
     setEjePrismaVal: (v: string) => void;
+    producto: Producto;
 }) => {
     const adicionValida = (val: string) => {
         if (val === "") return false;
@@ -130,7 +134,7 @@ const CamposReceta = ({
                         className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindroVal !== "" && !cilindroEsValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
                     />
                     <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                        Hasta: {cilindroHasta.toFixed(2)}
+                        Límite: ±{Math.abs(cilindroHasta).toFixed(2)}
                     </p>
                 </div>
 
@@ -209,13 +213,25 @@ const CamposReceta = ({
 
             {/* Indicador de potencia combinada ESF+CIL */}
             {sumaEsfCil !== null && (
-                <div className={`mt-2 px-3 py-2 rounded-lg text-[10px] font-bold flex items-center gap-2 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
-                    <span>Potencia meridional (ESF+CIL):</span>
-                    <span className={`font-black ${!combinacionOk ? "text-red-700" : "text-[#1F4E79]"}`}>
-                        {sumaEsfCil >= 0 ? `+${sumaEsfCil.toFixed(2)}` : sumaEsfCil.toFixed(2)}
-                    </span>
+                <div className={`mt-2 px-3 py-2 rounded-lg text-[10px] font-bold flex flex-col gap-1 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
+                    <div className="flex items-center justify-between gap-2 w-full">
+                        <div className="flex items-center gap-2">
+                            <span>Potencia meridional (ESF+CIL):</span>
+                            <span className={`font-black ${!combinacionOk ? "text-red-700" : "text-[#1F4E79]"}`}>
+                                {sumaEsfCil >= 0 ? `+${sumaEsfCil.toFixed(2)}` : sumaEsfCil.toFixed(2)}
+                            </span>
+                        </div>
+                        {!combinacionOk && (
+                            <span className="text-red-500 font-black animate-pulse uppercase">
+                                ⚠ Límite excedido
+                            </span>
+                        )}
+                    </div>
+                    
                     {!combinacionOk && (
-                        <span className="text-red-500 ml-1">⚠ Fuera de rango ({esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)})</span>
+                        <p className="text-[9px] font-medium leading-tight">
+                            La potencia total (ESF+CIL) debe estar entre {producto.suma_max_neg ? Number(producto.suma_max_neg).toFixed(2) : esferaDesde.toFixed(2)} y {producto.suma_max_pos ? (Number(producto.suma_max_pos) >= 0 ? '+' : '') + Number(producto.suma_max_pos).toFixed(2) : (esferaHasta >= 0 ? '+' : '') + esferaHasta.toFixed(2)} según manual técnico.
+                        </p>
                     )}
                 </div>
             )}
@@ -400,24 +416,30 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
 
     // Función para validar la combinación ESF + CIL (potencia meridional)
     const combinacionValida = (esf: string, cil: string) => {
-        if (esf === "" || cil === "") return true; // No validar si están vacíos
+        if (esf === "" || cil === "") return true;
         const suma = Number(esf) + Number(cil);
-        return suma >= esferaDesde && suma <= esferaHasta;
+
+        // Límite superior (+)
+        const maxPos = producto.suma_max_pos !== undefined ? Number(producto.suma_max_pos) : esferaHasta;
+        // Límite inferior (-)
+        const maxNeg = producto.suma_max_neg !== undefined ? Number(producto.suma_max_neg) : esferaDesde;
+
+        return suma >= maxNeg && suma <= maxPos;
     };
 
     // Validaciones para ojo único
     const esferaValida = esfera !== "" && Number(esfera) >= esferaDesde && Number(esfera) <= esferaHasta;
-    const cilindroValido = cilindro !== "" && Number(cilindro) >= Math.min(cilindroHasta, 0) && Number(cilindro) <= Math.max(cilindroHasta, 0);
+    const cilindroValido = cilindro !== "" && Math.abs(Number(cilindro)) <= Math.abs(cilindroHasta);
     const combinacionOkSingle = combinacionValida(esfera, cilindro);
 
     // Validaciones para AMBOS - OD
     const esferaODValida = esferaOD !== "" && Number(esferaOD) >= esferaDesde && Number(esferaOD) <= esferaHasta;
-    const cilindroODValido = cilindroOD !== "" && Number(cilindroOD) >= Math.min(cilindroHasta, 0) && Number(cilindroOD) <= Math.max(cilindroHasta, 0);
+    const cilindroODValido = cilindroOD !== "" && Math.abs(Number(cilindroOD)) <= Math.abs(cilindroHasta);
     const combinacionOkOD = combinacionValida(esferaOD, cilindroOD);
 
     // Validaciones para AMBOS - OI
     const esferaOIValida = esferaOI !== "" && Number(esferaOI) >= esferaDesde && Number(esferaOI) <= esferaHasta;
-    const cilindroOIValido = cilindroOI !== "" && Number(cilindroOI) >= Math.min(cilindroHasta, 0) && Number(cilindroOI) <= Math.max(cilindroHasta, 0);
+    const cilindroOIValido = cilindroOI !== "" && Math.abs(Number(cilindroOI)) <= Math.abs(cilindroHasta);
     const combinacionOkOI = combinacionValida(esferaOI, cilindroOI);
 
     const puedeAgregar = ojo === "AMBOS"
@@ -441,7 +463,9 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
             }
             if (!combinacionOkOD || !combinacionOkOI) {
                 const ojoProblema = !combinacionOkOD && !combinacionOkOI ? "ambos ojos" : !combinacionOkOD ? "el ojo derecho" : "el ojo izquierdo";
-                setErrorMsg(`La combinación ESF + CIL de ${ojoProblema} excede el rango del producto (${esferaDesde.toFixed(2)} a ${esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)}). La potencia total (ESF+CIL) debe estar dentro del rango de esfera del cristal.`);
+                const limitePos = producto.suma_max_pos ? Number(producto.suma_max_pos).toFixed(2) : esferaHasta.toFixed(2);
+                const limiteNeg = producto.suma_max_neg ? Number(producto.suma_max_neg).toFixed(2) : esferaDesde.toFixed(2);
+                setErrorMsg(`La potencia total (ESF+CIL) de ${ojoProblema} excede el límite del manual (rango total: ${limiteNeg} a +${limitePos}).`);
                 return;
             }
             if (requiereAdicion && (!adicionValida(adicionOD) || !adicionValida(adicionOI))) {
@@ -651,6 +675,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         setPrismaVal={setPrismaOD}
                                         ejePrismaVal={ejePrismaOD}
                                         setEjePrismaVal={setEjePrismaOD}
+                                        producto={producto}
                                     />
                                 </div>
                                 <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4">
@@ -677,6 +702,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         setPrismaVal={setPrismaOI}
                                         ejePrismaVal={ejePrismaOI}
                                         setEjePrismaVal={setEjePrismaOI}
+                                        producto={producto}
                                     />
                                 </div>
                             </div>
@@ -704,6 +730,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 setPrismaVal={setPrisma}
                                 ejePrismaVal={ejePrisma}
                                 setEjePrismaVal={setEjePrisma}
+                                producto={producto}
                             />
                         )}
                     </div>

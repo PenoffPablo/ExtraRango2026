@@ -18,7 +18,7 @@ export async function GET(req: Request) {
                 detalles_pedido: {
                     include: {
                         productos: {
-                            select: { nombre: true, imagen_url: true }
+                            select: { nombre: true }
                         }
                     }
                 }

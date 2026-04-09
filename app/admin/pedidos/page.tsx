@@ -134,6 +134,7 @@ export default function GestorPedidos() {
                         <thead className="bg-gray-50 border-b border-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                             <tr>
                                 <th className="px-6 py-4">ID</th>
+                                <th className="px-6 py-4">Fecha</th>
                                 <th className="px-6 py-4">Cliente</th>
                                 <th className="px-6 py-4">Total en ARS</th>
                                 <th className="px-6 py-4">Estado</th>
@@ -144,6 +145,12 @@ export default function GestorPedidos() {
                             {pedidos.map((pedido: any) => (
                                 <tr key={pedido.id} className="hover:bg-blue-50/30 transition-colors">
                                     <td className="px-6 py-4 font-mono font-bold text-[#1F4E79]">#{pedido.id}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+                                            <Calendar size={13} className="text-[#00D1C1]" />
+                                            {new Date(pedido.fecha_pedido).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="font-bold text-gray-800">{pedido.usuarios.nombre} {pedido.usuarios.apellido}</div>
                                         <div className="text-xs text-gray-400">{pedido.usuarios.email}</div>

@@ -16,7 +16,8 @@ export default function NuevoProductoPage() {
         linea: "",
         precio_base_usd: "",
         stock_actual: "0",
-        imagen_url: ""
+        suma_max_pos: "",
+        suma_max_neg: ""
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -114,11 +115,15 @@ export default function NuevoProductoPage() {
                         <textarea name="descripcion" rows={3} onChange={handleChange} className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#00D1C1] text-sm" placeholder="Detalles adicionales del producto..." />
                     </div>
 
-                    <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                            <ImageIcon size={12} /> URL de Imagen
-                        </label>
-                        <input name="imagen_url" onChange={handleChange} className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#00D1C1] text-sm" placeholder="https://..." />
+                    <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Límite Suma (+) Manual</label>
+                            <input type="number" step="0.25" name="suma_max_pos" onChange={handleChange} className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#00D1C1]" placeholder="Ej: +4.00" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Límite Suma (-) Manual</label>
+                            <input type="number" step="0.25" name="suma_max_neg" onChange={handleChange} className="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#00D1C1]" placeholder="Ej: -6.00" />
+                        </div>
                     </div>
 
                     <div className="pt-4 flex justify-end">
