@@ -197,18 +197,24 @@ export default function RemitoPage() {
                             <tr key={i}>
                                 <td className="text-center font-bold">{item.cantidad}</td>
                                 <td>
-                                    <span className="font-bold">{item.productos?.nombre || "Producto Personalizado"}</span>
-                                    <div className="text-[10px] text-gray-500">{item.productos?.codigo_sku}</div>
+                                    <span className="font-bold">{item.nombre_snapshot || item.productos?.nombre || "Producto Personalizado"}</span>
+                                    {item.productos?.codigo_sku && <div className="text-[10px] text-gray-500 mt-1">Ref: {item.productos.codigo_sku}</div>}
                                 </td>
-                                <td className="text-center text-[10px]">
-                                    <div className="font-bold">{item.ojo === "AMBOS" ? "PAR" : `UNIDAD (${item.ojo})`}</div>
-                                    {item.esfera !== null && item.esfera !== undefined && <div>Esf: {Number(item.esfera).toFixed(2)}</div>}
-                                    {item.cilindro !== null && item.cilindro !== undefined && <div>Cil: {Number(item.cilindro).toFixed(2)}</div>}
-                                    {item.eje !== null && item.eje !== undefined && <div>Eje: {item.eje}°</div>}
-                                    {item.adicion !== null && item.adicion !== undefined && <div className="font-bold text-amber-700">ADD: +{Number(item.adicion).toFixed(2)}</div>}
+                                <td className="text-center text-[10px] py-2">
+                                    <div className="font-bold mb-1">{item.ojo === "AMBOS" ? "PAR" : `UNIDAD (${item.ojo})`}</div>
+                                    <div className="flex flex-col items-center gap-0.5 text-[9.5px]">
+                                        <div className="flex justify-center gap-2">
+                                            {item.esfera !== null && item.esfera !== undefined && <span>Esf: {Number(item.esfera).toFixed(2)}</span>}
+                                            {item.cilindro !== null && item.cilindro !== undefined && <span>Cil: {Number(item.cilindro).toFixed(2)}</span>}
+                                            {item.eje !== null && item.eje !== undefined && <span>Eje: {item.eje}°</span>}
+                                        </div>
+                                        {item.adicion !== null && item.adicion !== undefined && <div className="font-bold w-full mx-auto" style={{ color: '#b45309' }}>ADD: +{Number(item.adicion).toFixed(2)}</div>}
+                                        {item.prisma !== null && item.prisma !== undefined && <div className="font-bold w-full mx-auto mt-0.5" style={{ color: '#6d28d9' }}>Pri: {Number(item.prisma).toFixed(2)}Δ {item.eje_prisma !== null ? `(B:${item.eje_prisma}°)` : ""}</div>}
+                                        {item.armazon_transversal !== null && item.armazon_transversal !== undefined && <div className="text-gray-600 font-medium tracking-tighter w-full mx-auto mt-0.5">A:{item.armazon_transversal} B:{item.armazon_altura} ED:{item.armazon_diagonal} DBL:{item.armazon_puente}</div>}
+                                    </div>
                                 </td>
-                                <td className="text-right font-mono">
-                                    ${(Number(item.precio_unitario_usd) * Number(pedido.cotizacion_dolar_dia)).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                <td className="text-right font-mono text-xs font-medium">
+                                    ${Number(item.precio_unitario_ars).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                             </tr>
                         ))}
