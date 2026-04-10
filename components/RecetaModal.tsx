@@ -62,6 +62,8 @@ const CamposReceta = ({
     setPrismaVal,
     ejePrismaVal,
     setEjePrismaVal,
+    campoMmVal,
+    setCampoMmVal,
     producto,
 }: {
     label: string;
@@ -86,6 +88,8 @@ const CamposReceta = ({
     setPrismaVal: (v: string) => void;
     ejePrismaVal: string;
     setEjePrismaVal: (v: string) => void;
+    campoMmVal?: string;
+    setCampoMmVal?: (v: string) => void;
     producto: Producto;
 }) => {
     const adicionValida = (val: string) => {
@@ -204,6 +208,27 @@ const CamposReceta = ({
             </div>
             )}
 
+            {/* Campo en mm (Solo Baja Visión) */}
+            {(producto.nombre.toLowerCase().includes("lenticular") || producto.nombre.toLowerCase().includes("sajonia")) && setCampoMmVal !== undefined && (
+                <div className="mt-3 bg-indigo-50/50 border border-indigo-100 rounded-xl p-3">
+                    <label className="text-[10px] font-bold text-indigo-600 mb-1 block ml-1">
+                        Campo Visual (mm)
+                    </label>
+                    <input
+                        type="number"
+                        min="20"
+                        max="30"
+                        value={campoMmVal}
+                        onChange={(e) => {
+                            if (setCampoMmVal) setCampoMmVal(e.target.value);
+                            setErrorMsg("");
+                        }}
+                        placeholder={producto.nombre.toLowerCase().includes("lenticular") ? "Ej: 22 (De 20 a 24)" : "Ej: 25 (De 24 a 26)"}
+                        className="w-full bg-white border border-indigo-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                    />
+                </div>
+            )}
+
             {/* ADD - Adición (solo bifocales/multifocales) */}
             {requiereAdicion && (
                 <div className="mt-3">
@@ -281,6 +306,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const [eje, setEje] = useState<string>("");
     const [prisma, setPrisma] = useState<string>("");
     const [ejePrisma, setEjePrisma] = useState<string>("");
+    const [campoMm, setCampoMm] = useState<string>("");
 
     // Campos separados para AMBOS ojos
     const [esferaOD, setEsferaOD] = useState<string>("");
@@ -288,12 +314,14 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const [ejeOD, setEjeOD] = useState<string>("");
     const [prismaOD, setPrismaOD] = useState<string>("");
     const [ejePrismaOD, setEjePrismaOD] = useState<string>("");
+    const [campoMmOD, setCampoMmOD] = useState<string>("");
 
     const [esferaOI, setEsferaOI] = useState<string>("");
     const [cilindroOI, setCilindroOI] = useState<string>("");
     const [ejeOI, setEjeOI] = useState<string>("");
     const [prismaOI, setPrismaOI] = useState<string>("");
     const [ejePrismaOI, setEjePrismaOI] = useState<string>("");
+    const [campoMmOI, setCampoMmOI] = useState<string>("");
 
     // Campo de adición para bifocales/multifocales
     const [adicion, setAdicion] = useState<string>("");
@@ -565,7 +593,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
             const cartItem = {
                 cartItemId: `${producto.id}_${Date.now()}`,
                 productoId: producto.id,
-                nombre: producto.nombre,
+                nombre: producto.nombre + (campoMmOD ? ` (Cam. OD: ${campoMmOD}mm)` : "") + (campoMmOI ? ` (Cam. OI: ${campoMmOI}mm)` : ""),
                 material: producto.material,
                 linea: producto.linea,
                 precioBaseUsd: precioBaseUsd / 2, // Unitario
@@ -605,7 +633,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
             const cartItem = {
                 cartItemId: `${producto.id}_${Date.now()}`,
                 productoId: producto.id,
-                nombre: producto.nombre,
+                nombre: producto.nombre + (campoMm ? ` (Campo: ${campoMm}mm)` : ""),
                 material: producto.material,
                 linea: producto.linea,
                 precioBaseUsd: precioBaseUsd / 2, // Unitario
@@ -728,6 +756,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         setPrismaVal={setPrismaOD}
                                         ejePrismaVal={ejePrismaOD}
                                         setEjePrismaVal={setEjePrismaOD}
+                                        campoMmVal={campoMmOD}
+                                        setCampoMmVal={setCampoMmOD}
                                         producto={producto}
                                     />
                                 </div>
@@ -755,6 +785,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         setPrismaVal={setPrismaOI}
                                         ejePrismaVal={ejePrismaOI}
                                         setEjePrismaVal={setEjePrismaOI}
+                                        campoMmVal={campoMmOI}
+                                        setCampoMmVal={setCampoMmOI}
                                         producto={producto}
                                     />
                                 </div>
@@ -783,6 +815,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 setPrismaVal={setPrisma}
                                 ejePrismaVal={ejePrisma}
                                 setEjePrismaVal={setEjePrisma}
+                                campoMmVal={campoMm}
+                                setCampoMmVal={setCampoMm}
                                 producto={producto}
                             />
                         )}
@@ -813,7 +847,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         type="number" 
                                         value={armazonTransversal} 
                                         onChange={(e) => setArmazonTransversal(e.target.value)}
-                                        placeholder="mm"
+                                        placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
                                 </div>
@@ -823,7 +857,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         type="number" 
                                         value={armazonAltura} 
                                         onChange={(e) => setArmazonAltura(e.target.value)}
-                                        placeholder="mm"
+                                        placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
                                 </div>
@@ -833,7 +867,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         type="number" 
                                         value={armazonDiagonal} 
                                         onChange={(e) => setArmazonDiagonal(e.target.value)}
-                                        placeholder="mm"
+                                        placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
                                 </div>
@@ -843,7 +877,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         type="number" 
                                         value={armazonPuente} 
                                         onChange={(e) => setArmazonPuente(e.target.value)}
-                                        placeholder="mm"
+                                        placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
                                 </div>
