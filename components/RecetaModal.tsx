@@ -110,13 +110,18 @@ const CamposReceta = ({
                     <input
                         type="number"
                         step="0.25"
+                        min={esferaDesde}
+                        max={esferaHasta}
                         value={esferaVal}
-                        onChange={(e) => { setEsferaVal(e.target.value); setErrorMsg(""); }}
+                        onChange={(e) => { 
+                            setEsferaVal(e.target.value); 
+                            setErrorMsg(""); 
+                        }}
                         placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
-                        className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esferaVal !== "" && !esferaEsValida ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                        className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esferaVal !== "" && !esferaEsValida ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
-                    <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                        Rango: {esferaDesde >= 0 ? `+${esferaDesde.toFixed(2)}` : esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? `+${esferaHasta.toFixed(2)}` : esferaHasta.toFixed(2)}
+                    <p className={`text-[9px] mt-1 ml-1 font-bold ${esferaVal !== "" && !esferaEsValida ? "text-red-500 animate-pulse" : "text-gray-400"}`}>
+                        {esferaVal !== "" && !esferaEsValida ? "⚠ FUERA DE RANGO" : `Rango: ${esferaDesde >= 0 ? "+" : ""}${esferaDesde.toFixed(2)} a ${esferaHasta >= 0 ? "+" : ""}${esferaHasta.toFixed(2)}`}
                     </p>
                 </div>
 
@@ -128,13 +133,18 @@ const CamposReceta = ({
                     <input
                         type="number"
                         step="0.25"
+                        min={-Math.abs(cilindroHasta)}
+                        max={Math.abs(cilindroHasta)}
                         value={cilindroVal}
-                        onChange={(e) => { setCilindroVal(e.target.value); setErrorMsg(""); }}
+                        onChange={(e) => { 
+                            setCilindroVal(e.target.value); 
+                            setErrorMsg(""); 
+                        }}
                         placeholder="Ej: -1.00"
-                        className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindroVal !== "" && !cilindroEsValido ? "border-red-400 bg-red-50/50" : "border-gray-200"}`}
+                        className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindroVal !== "" && !cilindroEsValido ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
-                    <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                        Límite: ±{Math.abs(cilindroHasta).toFixed(2)}
+                    <p className={`text-[9px] mt-1 ml-1 font-bold ${cilindroVal !== "" && !cilindroEsValido ? "text-red-500 animate-pulse" : "text-gray-400"}`}>
+                        {cilindroVal !== "" && !cilindroEsValido ? "⚠ FUERA DE RANGO" : `Límite: ±${Math.abs(cilindroHasta).toFixed(2)}`}
                     </p>
                 </div>
 
@@ -148,19 +158,23 @@ const CamposReceta = ({
                         min="0"
                         max="180"
                         value={ejeVal}
-                        onChange={(e) => setEjeVal(e.target.value)}
+                        onChange={(e) => {
+                            setEjeVal(e.target.value);
+                            setErrorMsg("");
+                        }}
                         placeholder="0-180°"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent"
+                        className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${ejeVal !== "" && (Number(ejeVal) < 0 || Number(ejeVal) > 180) ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
-                    <p className="text-[9px] text-gray-400 mt-1 ml-1">
-                        0° a 180°
+                    <p className={`text-[9px] mt-1 ml-1 font-bold ${ejeVal !== "" && (Number(ejeVal) < 0 || Number(ejeVal) > 180) ? "text-red-500 animate-pulse" : "text-gray-400"}`}>
+                        {ejeVal !== "" && (Number(ejeVal) < 0 || Number(ejeVal) > 180) ? "⚠ GRADOS INVÁLIDOS" : "0° a 180°"}
                     </p>
                 </div>
             </div>
 
-            {/* Campos de Prisma (Opcionales) */}
-            <div className="grid grid-cols-2 gap-3 mt-3 px-1 py-3 border-y border-gray-100 bg-gray-50/30 rounded-xl">
-                <div>
+            {/* Campos de Prisma (Opcionales) - Solo para lentes No-Stock */}
+            {!producto.linea?.toLowerCase().includes("stock") && (
+                <div className="grid grid-cols-2 gap-3 mt-3 px-1 py-3 border-y border-gray-100 bg-gray-50/30 rounded-xl">
+                    <div>
                     <label className="text-[10px] font-bold text-purple-600 mb-1 block ml-1">
                         Prisma (Δ)
                     </label>
@@ -188,6 +202,7 @@ const CamposReceta = ({
                     />
                 </div>
             </div>
+            )}
 
             {/* ADD - Adición (solo bifocales/multifocales) */}
             {requiereAdicion && (
@@ -216,21 +231,39 @@ const CamposReceta = ({
                 <div className={`mt-2 px-3 py-2 rounded-lg text-[10px] font-bold flex flex-col gap-1 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
                     <div className="flex items-center justify-between gap-2 w-full">
                         <div className="flex items-center gap-2">
-                            <span>Potencia meridional (ESF+CIL):</span>
-                            <span className={`font-black ${!combinacionOk ? "text-red-700" : "text-[#1F4E79]"}`}>
+                            <span>Suma (ESF+CIL):</span>
+                            <span className={`font-black ${!combinacionOk ? "text-amber-700" : "text-[#1F4E79]"}`}>
                                 {sumaEsfCil >= 0 ? `+${sumaEsfCil.toFixed(2)}` : sumaEsfCil.toFixed(2)}
                             </span>
                         </div>
-                        {!combinacionOk && (
-                            <span className="text-red-500 font-black animate-pulse uppercase">
-                                ⚠ Límite excedido
+                        {!combinacionOk && esferaEsValida && (
+                            <span className="text-amber-500 font-black animate-pulse uppercase">
+                                ⚠ Ajustar Cilindro
                             </span>
                         )}
                     </div>
                     
-                    {!combinacionOk && (
-                        <p className="text-[9px] font-medium leading-tight">
-                            La potencia total (ESF+CIL) debe estar entre {producto.suma_max_neg ? Number(producto.suma_max_neg).toFixed(2) : esferaDesde.toFixed(2)} y {producto.suma_max_pos ? (Number(producto.suma_max_pos) >= 0 ? '+' : '') + Number(producto.suma_max_pos).toFixed(2) : (esferaHasta >= 0 ? '+' : '') + esferaHasta.toFixed(2)} según manual técnico.
+                    {esferaVal !== "" && !esferaEsValida && (
+                        <p className="text-[9px] text-red-500 font-bold animate-pulse leading-tight mt-1">
+                            ⚠️ ESFERA FUERA DE RANGO: El límite para este cristal es de {esferaDesde.toFixed(2)} a {esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)}.
+                        </p>
+                    )}
+
+                    {cilindroVal !== "" && !cilindroEsValido && (
+                        <p className="text-[9px] text-red-500 font-bold animate-pulse leading-tight mt-1">
+                            ⚠️ CILINDRO FUERA DE RANGO: El límite máximo para este cristal es de ±{Math.abs(cilindroHasta).toFixed(2)}.
+                        </p>
+                    )}
+
+                    {ejeVal !== "" && (Number(ejeVal) < 0 || Number(ejeVal) > 180) && (
+                        <p className="text-[9px] text-red-500 font-bold animate-pulse leading-tight mt-1">
+                            ⚠️ EJE INVÁLIDO: Los grados del eje deben estar entre 0° y 180°.
+                        </p>
+                    )}
+
+                    {esferaVal !== "" && cilindroVal !== "" && esferaEsValida && cilindroEsValido && !combinacionOk && (
+                        <p className="text-[9px] text-amber-600 font-bold leading-tight mt-1 bg-amber-50 p-1.5 rounded border border-amber-200">
+                            ⚠️ POTENCIA COMBINADA (ESF+CIL): El valor de {sumaEsfCil !== null ? (sumaEsfCil >= 0 ? '+' : '') + sumaEsfCil.toFixed(2) : ""} excede el límite de talla de este producto (Rango: {producto.suma_max_neg ? Number(producto.suma_max_neg).toFixed(2) : esferaDesde.toFixed(2)} a {producto.suma_max_pos ? (Number(producto.suma_max_pos) >= 0 ? '+' : '') + Number(producto.suma_max_pos).toFixed(2) : (esferaHasta >= 0 ? '+' : '') + esferaHasta.toFixed(2)}).
                         </p>
                     )}
                 </div>
@@ -431,22 +464,25 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const esferaValida = esfera !== "" && Number(esfera) >= esferaDesde && Number(esfera) <= esferaHasta;
     const cilindroValido = cilindro !== "" && Math.abs(Number(cilindro)) <= Math.abs(cilindroHasta);
     const combinacionOkSingle = combinacionValida(esfera, cilindro);
+    const ejeValidoSingle = eje === "" || (Number(eje) >= 0 && Number(eje) <= 180);
 
     // Validaciones para AMBOS - OD
     const esferaODValida = esferaOD !== "" && Number(esferaOD) >= esferaDesde && Number(esferaOD) <= esferaHasta;
     const cilindroODValido = cilindroOD !== "" && Math.abs(Number(cilindroOD)) <= Math.abs(cilindroHasta);
     const combinacionOkOD = combinacionValida(esferaOD, cilindroOD);
+    const ejeODValido = ejeOD === "" || (Number(ejeOD) >= 0 && Number(ejeOD) <= 180);
 
     // Validaciones para AMBOS - OI
     const esferaOIValida = esferaOI !== "" && Number(esferaOI) >= esferaDesde && Number(esferaOI) <= esferaHasta;
     const cilindroOIValido = cilindroOI !== "" && Math.abs(Number(cilindroOI)) <= Math.abs(cilindroHasta);
     const combinacionOkOI = combinacionValida(esferaOI, cilindroOI);
+    const ejeOIValido = ejeOI === "" || (Number(ejeOI) >= 0 && Number(ejeOI) <= 180);
 
     const puedeAgregar = ojo === "AMBOS"
-        ? (esferaOD !== "" && cilindroOD !== "" && esferaODValida && cilindroODValido && combinacionOkOD &&
-            esferaOI !== "" && cilindroOI !== "" && esferaOIValida && cilindroOIValido && combinacionOkOI &&
+        ? (esferaOD !== "" && cilindroOD !== "" && esferaODValida && cilindroODValido && combinacionOkOD && ejeODValido &&
+            esferaOI !== "" && cilindroOI !== "" && esferaOIValida && cilindroOIValido && combinacionOkOI && ejeOIValido &&
             (!requiereAdicion || (adicionValida(adicionOD) && adicionValida(adicionOI))))
-        : (esfera !== "" && cilindro !== "" && esferaValida && cilindroValido && combinacionOkSingle &&
+        : (esfera !== "" && cilindro !== "" && esferaValida && cilindroValido && combinacionOkSingle && ejeValidoSingle &&
             (!requiereAdicion || adicionValida(adicion)));
 
     const handleAgregar = () => {
@@ -457,8 +493,13 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                 setErrorMsg("Completá los campos de esfera y cilindro para ambos ojos.");
                 return;
             }
-            if (!esferaODValida || !cilindroODValido || !esferaOIValida || !cilindroOIValido) {
-                setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
+            if (!esferaODValida || !esferaOIValida) {
+                const ojoErr = !esferaODValida && !esferaOIValida ? "ambos ojos" : !esferaODValida ? "el ojo derecho" : "el ojo izquierdo";
+                setErrorMsg(`⚠️ BLOQUEO TÉCNICO: La esfera de ${ojoErr} está fuera del rango permitido (${esferaDesde.toFixed(2)} a ${esferaHasta.toFixed(2)}). Corregí el valor para continuar.`);
+                return;
+            }
+            if (!cilindroODValido || !cilindroOIValido) {
+                setErrorMsg("Error: Cilindro fuera de rango técnico.");
                 return;
             }
             if (!combinacionOkOD || !combinacionOkOI) {
@@ -466,6 +507,10 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                 const limitePos = producto.suma_max_pos ? Number(producto.suma_max_pos).toFixed(2) : esferaHasta.toFixed(2);
                 const limiteNeg = producto.suma_max_neg ? Number(producto.suma_max_neg).toFixed(2) : esferaDesde.toFixed(2);
                 setErrorMsg(`La potencia total (ESF+CIL) de ${ojoProblema} excede el límite del manual (rango total: ${limiteNeg} a +${limitePos}).`);
+                return;
+            }
+            if (!ejeODValido || !ejeOIValido) {
+                setErrorMsg("El eje debe estar entre 0° y 180°.");
                 return;
             }
             if (requiereAdicion && (!adicionValida(adicionOD) || !adicionValida(adicionOI))) {
@@ -477,12 +522,20 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                 setErrorMsg("Completá los campos de esfera y cilindro.");
                 return;
             }
-            if (!esferaValida || !cilindroValido) {
-                setErrorMsg("El pedido no se puede enviar porque las esferas o cilindros no fueron colocados correctamente para el producto seleccionado.");
+            if (!esferaValida) {
+                setErrorMsg(`⚠️ BLOQUEO TÉCNICO: La esfera está fuera del rango permitido para este producto (${esferaDesde.toFixed(2)} a ${esferaHasta.toFixed(2)}).`);
+                return;
+            }
+            if (!cilindroValido) {
+                setErrorMsg("Error: Cilindro fuera de rango.");
                 return;
             }
             if (!combinacionOkSingle) {
-                setErrorMsg(`La combinación ESF + CIL (${(Number(esfera) + Number(cilindro)).toFixed(2)}) excede el rango del producto (${esferaDesde.toFixed(2)} a ${esferaHasta >= 0 ? '+' : ''}{esferaHasta.toFixed(2)}). La potencia total (ESF+CIL) debe estar dentro del rango de esfera del cristal.`);
+                setErrorMsg(`La combinación ESF + CIL (${(Number(esfera) + Number(cilindro)).toFixed(2)}) excede el rango del producto.`);
+                return;
+            }
+            if (!ejeValidoSingle) {
+                setErrorMsg("El eje debe estar entre 0° y 180°.");
                 return;
             }
             if (requiereAdicion && !adicionValida(adicion)) {
