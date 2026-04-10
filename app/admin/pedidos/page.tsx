@@ -13,9 +13,7 @@ export default function GestorPedidos() {
 
     const cargarPedidos = () => {
         const user = JSON.parse(localStorage.getItem("usuario_extrarango") || "{}");
-        fetch("/api/admin/pedidos", {
-            headers: { "user-id": user.id }
-        })
+        fetch("/api/admin/pedidos")
             .then(res => {
                 if (res.status === 401) { router.replace("/"); return null; }
                 return res.json();
@@ -47,8 +45,7 @@ export default function GestorPedidos() {
             const res = await fetch("/api/admin/pedidos", {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
-                    "user-id": user.id
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ id, estado: nuevoEstado }),
             });

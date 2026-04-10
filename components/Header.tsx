@@ -80,7 +80,8 @@ export default function Header() {
         };
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await fetch("/api/auth/logout", { method: "POST" });
         localStorage.removeItem("usuario_extrarango");
         localStorage.removeItem("cart_extrarango");
         setUsuario(null);

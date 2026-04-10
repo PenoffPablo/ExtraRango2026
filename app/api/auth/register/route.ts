@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { crearToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
     try {
@@ -37,6 +39,19 @@ export async function POST(req: Request) {
                 provincia,
                 rol: rolAsignado as any
             }
+        });
+
+        // Generar JWT
+        const token = await crearToken({ id: nuevoUsuario.id, rol: nuevoUsuario.rol || "CLIENTE" });
+        
+        // Guardar token en cookie HttpOnly
+        const cookieStore = await cookies();
+        cookieStore.set("auth_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7 // 7 días
         });
 
         const { password_hash, ...usuarioSinPassword } = nuevoUsuario;

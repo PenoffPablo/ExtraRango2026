@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { verificarToken } from "@/lib/auth";
 
 export async function GET(req: Request) {
     try {
-        const { searchParams } = new URL(req.url);
-        const userId = searchParams.get("id");
+        const tokenPayload = await verificarToken();
 
-        if (!userId) {
-            return NextResponse.json({ error: "ID de usuario requerido" }, { status: 400 });
+        if (!tokenPayload) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
         }
+
+        const userId = tokenPayload.id;
 
         const pedidos = await db.pedidos.findMany({
             where: {
-                usuario_id: Number(userId)
+                usuario_id: userId
             },
             include: {
                 detalles_pedido: {

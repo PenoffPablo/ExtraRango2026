@@ -34,8 +34,7 @@ export default function NuevoProductoPage() {
             const res = await fetch("/api/admin/productos", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "user-id": user.id
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(formData),
             });

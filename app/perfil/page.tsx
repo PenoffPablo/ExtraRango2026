@@ -37,7 +37,7 @@ export default function PerfilPage() {
         });
 
         // Cargar Historial
-        fetch(`/api/usuario/pedidos?id=${parsedUser.id}`)
+        fetch(`/api/usuario/pedidos`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) setPedidos(data);
@@ -82,7 +82,7 @@ export default function PerfilPage() {
             const res = await fetch("/api/usuario/perfil", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: user.id, ...formData }),
+                body: JSON.stringify({ ...formData }),
             });
 
             if (!res.ok) throw new Error("Error al actualizar");
@@ -105,11 +105,12 @@ export default function PerfilPage() {
         if (!confirm("⚠️ ¿Estás seguro? Tu cuenta se desactivará y no podrás acceder.")) return;
 
         try {
-            const res = await fetch(`/api/usuario/perfil?id=${user.id}`, {
+            const res = await fetch(`/api/usuario/perfil`, {
                 method: "DELETE",
             });
 
             if (res.ok) {
+                await fetch("/api/auth/logout", { method: "POST" });
                 localStorage.removeItem("usuario_extrarango");
                 window.dispatchEvent(new Event("userLogin"));
                 router.push("/");

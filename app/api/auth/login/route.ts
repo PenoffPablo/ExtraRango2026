@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { crearToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
     try {
@@ -21,6 +23,19 @@ export async function POST(request: Request) {
         if (!passwordMatch) {
             return NextResponse.json({ error: "Contraseña incorrecta" }, { status: 401 });
         }
+
+        // Generar JWT
+        const token = await crearToken({ id: user.id, rol: user.rol || "CLIENTE" });
+        
+        // Guardar token en cookie HttpOnly
+        const cookieStore = await cookies();
+        cookieStore.set("auth_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7 // 7 días
+        });
 
         const { password_hash: _, ...userWithoutPass } = user;
 

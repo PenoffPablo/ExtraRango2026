@@ -40,7 +40,6 @@ export default function CheckoutAction() {
         }, 0);
 
         const orderPayload = {
-            usuario_id: user.id,
             cotizacion_dolar: cotizacionReal,
             total_usd: totalUSD,
             items: cartItems.map((item: any) => ({
