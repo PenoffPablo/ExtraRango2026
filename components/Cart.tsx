@@ -61,6 +61,16 @@ export default function CheckoutAction() {
                 adicion: item.adicion ?? null,
                 adicionOD: item.adicionOD ?? null,
                 adicionOI: item.adicionOI ?? null,
+                prisma: item.prisma ?? null,
+                ejePrisma: item.ejePrisma ?? null,
+                prismaOD: item.prismaOD ?? null,
+                ejePrismaOD: item.ejePrismaOD ?? null,
+                prismaOI: item.prismaOI ?? null,
+                ejePrismaOI: item.ejePrismaOI ?? null,
+                armazonTransversal: item.armazonTransversal ?? null,
+                armazonAltura: item.armazonAltura ?? null,
+                armazonDiagonal: item.armazonDiagonal ?? null,
+                armazonPuente: item.armazonPuente ?? null,
                 tratamientos: item.tratamientos || [],
             }))
         };

@@ -265,12 +265,34 @@ export default function PerfilPage() {
                                                     <div className="bg-gray-100 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-gray-500">
                                                         {detalle.cantidad}
                                                     </div>
-
-                                                    <div>
-                                                        <p className="text-xs font-bold text-gray-700">{detalle.productos?.nombre || detalle.nombre_snapshot || "Producto"}</p>
-                                                        {detalle.ojo && detalle.ojo !== "AMBOS" && (
-                                                            <span className="text-[10px] text-gray-400 font-medium">Ojo: {detalle.ojo}</span>
-                                                        )}
+                                                    <div className="flex flex-col">
+                                                        <p className="text-xs font-bold text-gray-700 leading-tight">{detalle.nombre_snapshot || detalle.productos?.nombre || "Producto"}</p>
+                                                        <div className="flex flex-wrap gap-2 mt-1.5 items-center">
+                                                            {detalle.ojo && detalle.ojo !== "AMBOS" && (
+                                                                <span className="text-[9px] text-[#1F4E79] font-black uppercase bg-[#1F4E79]/10 px-1.5 py-0.5 rounded border border-[#1F4E79]/20">OJO {detalle.ojo}</span>
+                                                            )}
+                                                            {(detalle.esfera !== null || detalle.cilindro !== null) && (
+                                                                <span className="text-[9px] text-gray-600 font-bold uppercase bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                                                    ESF: {detalle.esfera !== null ? Number(detalle.esfera).toFixed(2) : "-"} <span className="text-gray-300 font-normal mx-0.5">|</span> CIL: {detalle.cilindro !== null ? Number(detalle.cilindro).toFixed(2) : "-"}
+                                                                </span>
+                                                            )}
+                                                            {detalle.adicion !== null && (
+                                                                <span className="text-[9px] text-amber-700 font-bold uppercase bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                                                    ADD: +{Number(detalle.adicion).toFixed(2)}
+                                                                </span>
+                                                            )}
+                                                            {detalle.prisma !== null && (
+                                                                <span className="text-[9px] text-purple-700 font-bold uppercase bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                                                                    Prisma: {Number(detalle.prisma).toFixed(2)}Δ {detalle.eje_prisma !== null ? `(B: ${detalle.eje_prisma}°)` : ""}
+                                                                </span>
+                                                            )}
+                                                            {detalle.armazon_transversal !== null && (
+                                                                <span className="text-[9px] text-blue-700 font-bold uppercase bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 flex gap-1">
+                                                                    <span>Marco:</span>
+                                                                    <span className="opacity-70 font-medium">A:{Number(detalle.armazon_transversal)} B:{Number(detalle.armazon_altura)} ED:{Number(detalle.armazon_diagonal)} DBL:{Number(detalle.armazon_puente)}</span>
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -205,7 +205,7 @@ export default function GestorPedidos() {
                                 {pedidoSeleccionado.detalles_pedido.map((detalle: any, index: number) => (
                                     <div key={index} className="border border-gray-200 rounded-xl p-4 bg-gray-50/30">
                                         <div className="flex justify-between items-start mb-3">
-                                            <p className="font-bold text-[#1F4E79] leading-tight pr-4">{detalle.productos?.nombre || detalle.nombre_snapshot}</p>
+                                            <p className="font-bold text-[#1F4E79] leading-tight pr-4">{detalle.nombre_snapshot || detalle.productos?.nombre}</p>
                                             <p className="font-mono font-black text-gray-700 whitespace-nowrap text-sm">$ {Number(detalle.precio_unitario_ars).toFixed(2)}</p>
                                         </div>
 
@@ -231,7 +231,25 @@ export default function GestorPedidos() {
                                                 <span className="font-medium text-amber-600 text-xs md:text-sm">{detalle.adicion !== null && detalle.adicion !== undefined ? `+${Number(detalle.adicion).toFixed(2)}` : "-"}</span>
                                             </div>
                                         </div>
-                                        <div className="text-[10px] font-bold text-gray-400 mt-2 uppercase">Cantidad: {detalle.cantidad}</div>
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2 border-t border-gray-100/50 pt-2">
+                                            <div className="text-[10px] font-bold text-gray-400 uppercase">Cantidad: {detalle.cantidad}</div>
+                                            {(detalle.prisma !== null || detalle.armazon_transversal !== null) && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {detalle.prisma !== null && (
+                                                        <div className="bg-purple-50 text-purple-700 px-2 py-1 flex-1 sm:flex-none rounded text-[9px] md:text-[10px] font-bold border border-purple-100 flex items-center gap-1 uppercase">
+                                                            <span>Prisma: {Number(detalle.prisma).toFixed(2)}Δ</span>
+                                                            {detalle.eje_prisma !== null && <span className="opacity-70">(Base {detalle.eje_prisma}°)</span>}
+                                                        </div>
+                                                    )}
+                                                    {detalle.armazon_transversal !== null && (
+                                                        <div className="bg-blue-50 text-blue-700 px-2 flex-1 py-1 sm:flex-none rounded text-[9px] md:text-[10px] font-bold border border-blue-100 flex items-center gap-1 uppercase">
+                                                            <span>Marco (cm):</span>
+                                                            <span className="opacity-70">A:{Number(detalle.armazon_transversal)} <span className="text-blue-300">|</span> B:{Number(detalle.armazon_altura)} <span className="text-blue-300">|</span> ED:{Number(detalle.armazon_diagonal)} <span className="text-blue-300">|</span> DBL:{Number(detalle.armazon_puente)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
