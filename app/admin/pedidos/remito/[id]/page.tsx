@@ -129,9 +129,9 @@ export default function RemitoPage() {
             <div className="remito-container">
                 <div className="watermark">EXTRARANGO</div>
 
-                <div className="header">
+                <div className="header flex flex-col md:flex-row justify-between relative border-b-2 border-black pb-5 mb-5 gap-6 md:gap-0 mt-8 md:mt-0">
                     <div className="r-box">R</div>
-                    <div className="w-1/2 pr-8 border-r border-gray-300">
+                    <div className="w-full md:w-1/2 md:pr-8 md:border-r border-gray-300 text-center md:text-left">
                         <h1 className="text-3xl font-black tracking-tighter mb-4">EXTRARANGO</h1>
                         <div className="text-xs leading-relaxed">
                             <p><strong>Domicilio:</strong> Córdoba 270, Mendoza</p>
@@ -140,7 +140,7 @@ export default function RemitoPage() {
                             <p className="mt-2 text-gray-500">AP CALIBRADOS</p>
                         </div>
                     </div>
-                    <div className="w-1/2 pl-8 text-right flex flex-col justify-between">
+                    <div className="w-full md:w-1/2 md:pl-8 text-center md:text-right flex flex-col justify-between">
                         <div>
                             <div className="font-bold text-lg mb-1">REMITO</div>
                             <div className="text-[10px] font-bold uppercase mb-4">&quot;Documento no válido como factura&quot;</div>
@@ -148,44 +148,45 @@ export default function RemitoPage() {
                                 Nro: {String(pedido.id).padStart(4, '0')} - {String(pedido.id).padStart(8, '0')}
                             </div>
                         </div>
-                        <div className="text-sm">
+                        <div className="text-sm mt-4 md:mt-0">
                             <strong>FECHA:</strong> {new Date(pedido.fecha_pedido).toLocaleDateString()}
                         </div>
                     </div>
                 </div>
 
                 <div className="border border-black p-4 mb-6 text-sm bg-gray-50">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="info-row">
-                            <span className="info-label">Destinatario:</span>
-                            <span className="uppercase">{pedido.usuarios.nombre} {pedido.usuarios.apellido}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="info-row flex flex-col sm:flex-row">
+                            <span className="info-label w-full sm:w-[100px] mb-1 sm:mb-0">Destinatario:</span>
+                            <span className="uppercase break-words">{pedido.usuarios.nombre} {pedido.usuarios.apellido}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">CUIT/CUIL:</span>
-                            <span>{pedido.usuarios.cuil}</span>
+                        <div className="info-row flex flex-col sm:flex-row">
+                            <span className="info-label w-full sm:w-[100px] mb-1 sm:mb-0">CUIT/CUIL:</span>
+                            <span className="break-words">{pedido.usuarios.cuil}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Email:</span>
-                            <span>{pedido.usuarios.email}</span>
+                        <div className="info-row flex flex-col sm:flex-row">
+                            <span className="info-label w-full sm:w-[100px] mb-1 sm:mb-0">Email:</span>
+                            <span className="break-words max-w-xs">{pedido.usuarios.email}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Dirección:</span>
-                            <span className="uppercase">
+                        <div className="info-row flex flex-col sm:flex-row">
+                            <span className="info-label w-full sm:w-[100px] mb-1 sm:mb-0">Dirección:</span>
+                            <span className="uppercase break-words">
                                 {pedido.usuarios.calle || '-'} {pedido.usuarios.numeracion}
                                 {pedido.usuarios.departamento ? ` Dpto ${pedido.usuarios.departamento}` : ''}
                                 {pedido.usuarios.provincia ? ` - ${pedido.usuarios.provincia}` : ''}
                             </span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Teléfono:</span>
-                            <span>{pedido.usuarios.telefono || 'No especificado'}</span>
+                        <div className="info-row flex flex-col sm:flex-row">
+                            <span className="info-label w-full sm:w-[100px] mb-1 sm:mb-0">Teléfono:</span>
+                            <span className="break-words">{pedido.usuarios.telefono || 'No especificado'}</span>
                         </div>
                     </div>
                 </div>
 
-                <table className="items-table">
-                    <thead>
-                        <tr>
+                <div className="w-full overflow-x-auto border border-black mb-6">
+                    <table className="items-table min-w-[600px] w-full m-0 border-none">
+                        <thead>
+                            <tr>
                             <th className="w-[10%] text-center">Cant.</th>
                             <th className="w-[60%] text-left">Descripción</th>
                             <th className="w-[15%] text-center">Detalle</th>
@@ -220,14 +221,15 @@ export default function RemitoPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
 
-                <div className="flex justify-between items-end mt-8 border-t border-black pt-4">
-                    <div className="text-[10px] w-[60%] text-gray-600">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-8 border-t border-black pt-4 gap-6 md:gap-0">
+                    <div className="text-[10px] w-full md:w-[60%] text-gray-600 text-center md:text-left">
                         Declaramos que los bienes detallados en este remito son propiedad del destinatario.<br />
                         Controlar mercadería antes de firmar. <br />
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-center md:text-right w-full md:w-auto">
                         <div className="text-xs font-bold uppercase text-gray-500">Total en ARS</div>
                         <div className="text-2xl font-black">
                             ${Number(pedido.total_ars).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
@@ -235,9 +237,9 @@ export default function RemitoPage() {
                     </div>
                 </div>
 
-                <div className="flex justify-between mt-16 px-8 pb-4">
-                    <div className="border-t border-black w-40 text-center text-xs pt-2">Firma del Remitente</div>
-                    <div className="border-t border-black w-40 text-center text-xs pt-2">Firma del Destinatario</div>
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-start mt-16 px-4 md:px-8 pb-4 gap-12 md:gap-0">
+                    <div className="border-t border-black w-48 text-center text-xs pt-2">Firma del Remitente</div>
+                    <div className="border-t border-black w-48 text-center text-xs pt-2">Firma del Destinatario</div>
                 </div>
             </div>
         </div>

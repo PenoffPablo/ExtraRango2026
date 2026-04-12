@@ -206,26 +206,28 @@ export default function GestorPedidos() {
                                             <p className="font-mono font-black text-gray-700 whitespace-nowrap text-sm">$ {Number(detalle.precio_unitario_ars).toFixed(2)}</p>
                                         </div>
 
-                                        <div className="grid grid-cols-5 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200 text-center">
-                                            <div className="bg-white p-2">
-                                                <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Ojo</span>
-                                                <span className="font-black text-[#1F4E79] text-xs md:text-sm">{detalle.ojo}</span>
-                                            </div>
-                                            <div className="bg-white p-2">
-                                                <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Esf.</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.esfera !== null && detalle.esfera !== undefined ? Number(detalle.esfera).toFixed(2) : "-"}</span>
-                                            </div>
-                                            <div className="bg-white p-2">
-                                                <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cil.</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.cilindro !== null && detalle.cilindro !== undefined ? Number(detalle.cilindro).toFixed(2) : "-"}</span>
-                                            </div>
-                                            <div className="bg-white p-2">
-                                                <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Eje</span>
-                                                <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.eje !== null && detalle.eje !== undefined ? `${detalle.eje}°` : "-"}</span>
-                                            </div>
-                                            <div className="bg-white p-2">
-                                                <span className="block text-[8px] md:text-[9px] font-bold text-amber-500 uppercase tracking-wider">ADD</span>
-                                                <span className="font-medium text-amber-600 text-xs md:text-sm">{detalle.adicion !== null && detalle.adicion !== undefined ? `+${Number(detalle.adicion).toFixed(2)}` : "-"}</span>
+                                        <div className="w-full overflow-x-auto pb-1">
+                                            <div className="grid grid-cols-5 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200 text-center min-w-[320px]">
+                                                <div className="bg-white p-2">
+                                                    <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Ojo</span>
+                                                    <span className="font-black text-[#1F4E79] text-xs md:text-sm">{detalle.ojo}</span>
+                                                </div>
+                                                <div className="bg-white p-2">
+                                                    <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Esf.</span>
+                                                    <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.esfera !== null && detalle.esfera !== undefined ? Number(detalle.esfera).toFixed(2) : "-"}</span>
+                                                </div>
+                                                <div className="bg-white p-2">
+                                                    <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cil.</span>
+                                                    <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.cilindro !== null && detalle.cilindro !== undefined ? Number(detalle.cilindro).toFixed(2) : "-"}</span>
+                                                </div>
+                                                <div className="bg-white p-2">
+                                                    <span className="block text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider">Eje</span>
+                                                    <span className="font-medium text-gray-700 text-xs md:text-sm">{detalle.eje !== null && detalle.eje !== undefined ? `${detalle.eje}°` : "-"}</span>
+                                                </div>
+                                                <div className="bg-white p-2">
+                                                    <span className="block text-[8px] md:text-[9px] font-bold text-amber-500 uppercase tracking-wider">ADD</span>
+                                                    <span className="font-medium text-amber-600 text-xs md:text-sm">{detalle.adicion !== null && detalle.adicion !== undefined ? `+${Number(detalle.adicion).toFixed(2)}` : "-"}</span>
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2 border-t border-gray-100/50 pt-2">

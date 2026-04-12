@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   description: "Sistema de gestion de ventas y pedidos de baja vision para ópticas.",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

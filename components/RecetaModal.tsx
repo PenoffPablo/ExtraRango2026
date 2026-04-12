@@ -105,7 +105,7 @@ const CamposReceta = ({
                 <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-gray-500">{label}</span>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                 {/* Esfera */}
                 <div>
                     <label className="text-[10px] font-bold text-gray-500 mb-1 block ml-1">
@@ -177,7 +177,7 @@ const CamposReceta = ({
 
             {/* Campos de Prisma (Opcionales) - Solo para lentes No-Stock */}
             {!producto.linea?.toLowerCase().includes("stock") && (
-                <div className="grid grid-cols-2 gap-3 mt-3 px-1 py-3 border-y border-gray-100 bg-gray-50/30 rounded-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mt-3 px-1 py-3 border-y border-gray-100 bg-gray-50/30 rounded-xl">
                     <div>
                     <label className="text-[10px] font-bold text-purple-600 mb-1 block ml-1">
                         Prisma (Δ)
@@ -253,8 +253,8 @@ const CamposReceta = ({
 
             {/* Indicador de potencia combinada ESF+CIL */}
             {sumaEsfCil !== null && (
-                <div className={`mt-2 px-3 py-2 rounded-lg text-[10px] font-bold flex flex-col gap-1 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
-                    <div className="flex items-center justify-between gap-2 w-full">
+                <div className={`mt-2 px-2 py-2 rounded-lg text-[10px] font-bold flex flex-col gap-1 ${!combinacionOk ? "bg-red-50 border border-red-200 text-red-600" : "bg-gray-50 border border-gray-100 text-gray-500"}`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2 w-full">
                         <div className="flex items-center gap-2">
                             <span>Suma (ESF+CIL):</span>
                             <span className={`font-black ${!combinacionOk ? "text-amber-700" : "text-[#1F4E79]"}`}>
@@ -674,7 +674,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
 
             {/* Modal */}
             <div
-                className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 fade-in duration-200"
+                className="relative bg-white rounded-3xl shadow-2xl w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 fade-in duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -683,8 +683,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                         <X size={20} />
                     </button>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-1">Configurar Cristal</p>
-                    <h2 className="text-xl font-black leading-tight pr-8">{producto.nombre}</h2>
-                    <div className="flex gap-2 mt-2">
+                    <h2 className="text-lg sm:text-xl font-black leading-tight pr-4 sm:pr-8">{producto.nombre}</h2>
+                    <div className="flex flex-wrap gap-2 mt-2">
                         {producto.material && <span className="text-[9px] font-bold bg-white/15 px-2 py-0.5 rounded uppercase">{producto.material}</span>}
                         {producto.linea && <span className="text-[9px] font-bold bg-[#00D1C1]/30 px-2 py-0.5 rounded uppercase">{producto.linea}</span>}
                     </div>
@@ -703,12 +703,12 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                             <Eye size={12} className="inline mr-1 -mt-0.5" />
                             Seleccionar Ojo
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-col md:flex-row gap-2 text-center">
                             {(["DERECHO", "IZQUIERDO", "AMBOS"] as const).map(opt => (
                                 <button
                                     key={opt}
                                     onClick={() => setOjo(opt)}
-                                    className={`py-3 rounded-xl text-xs font-black uppercase tracking-wide transition-all border-2 ${ojo === opt
+                                    className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wide transition-all border-2 ${ojo === opt
                                         ? "bg-[#1F4E79] text-white border-[#1F4E79] shadow-lg shadow-[#1F4E79]/20"
                                         : "bg-gray-50 text-gray-500 border-gray-200 hover:border-[#1F4E79]/30"
                                         }`}
@@ -840,7 +840,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                         </button>
 
                         {showArmazon && (
-                            <div className="grid grid-cols-4 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase mb-1 block">A (Transv.)</label>
                                     <input 
@@ -927,7 +927,7 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <span className={`text-sm font-black whitespace-nowrap ${isSelected ? "text-[#00D1C1]" : "text-gray-400"}`}>
+                                                        <span className={`text-sm font-black text-right min-w-[70px] ${isSelected ? "text-[#00D1C1]" : "text-gray-400"}`}>
                                                             {t.codigo === "REC-SPORTDESING" ? "A CONSULTAR" : `+$${precioArs.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`}
                                                         </span>
                                                     </button>
@@ -951,15 +951,15 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                             <span className="font-bold text-gray-700">${(precioBaseUsd * multiplier * cotizacion).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
                         </div>
                         {tratamientosSeleccionadosData.length > 0 && (
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-500 font-medium">
+                            <div className="flex justify-between items-end gap-2 text-sm border-t border-gray-200 pt-2 pb-2">
+                                <span className="text-gray-500 font-medium leading-tight text-xs sm:text-sm">
                                     Tratamientos ({tratamientosSeleccionadosData.length}) {isPair ? "(par)" : "(unidad)"}
                                 </span>
                                 <span className="font-bold text-[#00D1C1]">+${(totalTratamientosUsd * multiplier * cotizacion).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
                             </div>
                         )}
-                        <div className="border-t border-gray-200 pt-2 flex justify-between items-baseline">
-                            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Estimado</span>
+                        <div className="border-t border-gray-200 pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
+                            <span className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Total Estimado</span>
                             <span className="text-2xl font-black text-[#1F4E79]">${totalArs.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
                         </div>
                     </div>
