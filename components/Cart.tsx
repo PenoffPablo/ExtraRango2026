@@ -1,10 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CheckoutAction() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [idempotencyKey, setIdempotencyKey] = useState("");
+
+    useEffect(() => {
+        setIdempotencyKey(crypto.randomUUID());
+        const handleUpdate = () => setIdempotencyKey(crypto.randomUUID());
+        
+        window.addEventListener("cartUpdated", handleUpdate);
+        return () => window.removeEventListener("cartUpdated", handleUpdate);
+    }, []);
 
     const handleFinalizarCompra = async () => {
         setLoading(true);
@@ -40,6 +49,7 @@ export default function CheckoutAction() {
         }, 0);
 
         const orderPayload = {
+            idempotencyKey,
             cotizacion_dolar: cotizacionReal,
             total_usd: totalUSD,
             items: cartItems.map((item: any) => ({

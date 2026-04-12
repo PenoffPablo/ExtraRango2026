@@ -39,6 +39,7 @@ model detalles_pedido {
 model pedidos {
   id                   Int               @id @default(autoincrement())
   usuario_id           Int
+  idempotency_key      String?           @unique @db.VarChar(100)
   fecha_pedido         DateTime?         @default(now()) @db.DateTime(0)
   estado               pedidos_estado?   @default(PENDIENTE)
   cotizacion_dolar_dia Decimal           @db.Decimal(10, 2)
@@ -131,4 +132,10 @@ model detalles_pedido_tratamientos {
 
   @@index([detalle_pedido_id], map: "detalle_pedido_id")
   @@index([tratamiento_id], map: "tratamiento_id")
+}
+
+model configuracion_sistema {
+  id                   Int      @id @default(1)
+  dolar_oficial        Decimal  @db.Decimal(10, 2)
+  ultima_actualizacion DateTime @default(now())
 }

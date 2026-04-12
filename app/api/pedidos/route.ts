@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { verificarToken } from "@/lib/auth";
+import { getDollarRate } from "@/lib/getDollar";
 
 export async function POST(req: Request) {
     try {
@@ -10,16 +11,29 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { items, cotizacion_dolar } = body;
+        const { items, idempotencyKey } = body;
 
         const usuario_id = tokenPayload.id;
 
         // 1. Validaciones
+        if (!idempotencyKey) {
+            return NextResponse.json({ error: "Falta Clave Única de Transacción. Recarga la página." }, { status: 400 });
+        }
         if (!items || items.length === 0) {
             return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
         }
 
-        const cotizacion = Number(cotizacion_dolar);
+        // Validación estricta anti-fraude (Hack de cantidades negativas)
+        for (const item of items) {
+            if (!Number.isInteger(Number(item.cantidad)) || Number(item.cantidad) <= 0) {
+                return NextResponse.json({ error: "Cantidades inválidas en la orden. Violación Zero-Trust interceptada." }, { status: 400 });
+            }
+        }
+
+        // 1.B Verdad Absoluta Cambiaria
+
+        let cotizacion = await getDollarRate();
+        if (!cotizacion) cotizacion = 1480;
 
         // EXTRAER IDS ÚNICOS PARA BÚSQUEDA MASIVA EN BD
         const productoIds = [...new Set(items.map((i: any) => i.id))];
@@ -37,7 +51,7 @@ export async function POST(req: Request) {
             where: { id: { in: productoIds as number[] } },
             select: { id: true, precio_base_usd: true }
         });
-        
+
         const tratamientosBd = await db.tratamientos.findMany({
             where: { id: { in: Array.from(tratamientoIds) } },
             select: { id: true, precio_usd: true }
@@ -47,8 +61,6 @@ export async function POST(req: Request) {
         const mapProductos = new Map(productosBd.map(p => [p.id, Number(p.precio_base_usd)]));
         const mapTratamientos = new Map(tratamientosBd.map(t => [t.id, Number(t.precio_usd)]));
 
-        // 2. Expandir items: si un item tiene ojo="AMBOS" con recetas separadas (esferaOD/OI),
-        //    se desdobla en 2 detalles (uno para OD y otro para OI).
         const expandedItems: any[] = [];
         for (const item of items) {
             if (item.ojo === "AMBOS" && item.esferaOD !== null && item.esferaOD !== undefined) {
@@ -84,7 +96,7 @@ export async function POST(req: Request) {
         const detalles_preparados = expandedItems.map((item: any) => {
             const precio_base_par = mapProductos.get(item.id);
             if (precio_base_par === undefined) throw new Error(`Producto ${item.id} no existe o no tiene precio válido en BD`);
-            
+
             // Regla principal: Ojo único = 50% del precio base
             const precio_producto_unitario_usd = precio_base_par / 2;
 
@@ -124,51 +136,60 @@ export async function POST(req: Request) {
                 armazon_altura: item.armazonAltura !== undefined && item.armazonAltura !== null ? Number(item.armazonAltura) : null,
                 armazon_diagonal: item.armazonDiagonal !== undefined && item.armazonDiagonal !== null ? Number(item.armazonDiagonal) : null,
                 armazon_puente: item.armazonPuente !== undefined && item.armazonPuente !== null ? Number(item.armazonPuente) : null,
-                // Conservamos tratamientos para insertarlos en paso 5
+
                 tratamientosOriginales: item.tratamientos || []
             };
         });
 
-        // 4. Crear Pedido con detalles
-        const nuevoPedido = await db.pedidos.create({
-            data: {
-                usuario_id: Number(usuario_id),
-                estado: "PENDIENTE",
-                cotizacion_dolar_dia: cotizacion,
-                total_usd: server_total_usd,
-                total_ars: server_total_usd * cotizacion,
+        // 4. Crear Pedido con detalles (Con Protección de Idempotencia)
+        let nuevoPedido;
+        try {
+            nuevoPedido = await db.pedidos.create({
+                data: {
+                    usuario_id: Number(usuario_id),
+                    idempotency_key: idempotencyKey,
+                    estado: "PENDIENTE",
+                    cotizacion_dolar_dia: cotizacion,
+                    total_usd: server_total_usd,
+                    total_ars: server_total_usd * cotizacion,
 
-                detalles_pedido: {
-                    create: detalles_preparados.map(d => {
-                        const { tratamientosOriginales, ...detallePuro } = d;
-                        return detallePuro;
-                    })
-                }
-            },
-            include: {
-                detalles_pedido: true
-            }
-        });
+                    detalles_pedido: {
+                        create: detalles_preparados.map(d => {
+                            const { tratamientosOriginales, ...detallePuro } = d;
 
-        // 5. Guardar tratamientos por cada detalle (SERVER-SIDE PRECIO)
-        for (let i = 0; i < detalles_preparados.length; i++) {
-            const itemOriginal = detalles_preparados[i];
-            const detalleDb = nuevoPedido.detalles_pedido[i];
+                            // Preparar tratamientos para inserción anidada profunda si existen
+                            const tratamientosCreate = tratamientosOriginales
+                                .filter((trat: any) => mapTratamientos.has(trat.id))
+                                .map((trat: any) => ({
+                                    tratamiento_id: trat.id,
+                                    precio_usd: (mapTratamientos.get(trat.id) || 0) / 2
+                                }));
 
-            if (itemOriginal.tratamientosOriginales.length > 0 && detalleDb) {
-                for (const trat of itemOriginal.tratamientosOriginales) {
-                    const trat_precio_par = mapTratamientos.get(trat.id);
-                    if (trat_precio_par !== undefined) {
-                        await db.detalles_pedido_tratamientos.create({
-                            data: {
-                                detalle_pedido_id: detalleDb.id,
-                                tratamiento_id: trat.id,
-                                precio_usd: trat_precio_par / 2, // Se guarda el costo calculado del 50%
-                            }
-                        });
+                            return {
+                                ...detallePuro,
+                                detalles_pedido_tratamientos: tratamientosCreate.length > 0
+                                    ? { create: tratamientosCreate }
+                                    : undefined
+                            };
+                        })
                     }
+                },
+                include: {
+                    detalles_pedido: true
+                }
+            });
+        } catch (dbError: any) {
+            // P2002 = Violación de restricción única (Unique constraint failed)
+            if (dbError.code === 'P2002') {
+                const pedidoPrevio = await db.pedidos.findUnique({
+                    where: { idempotency_key: idempotencyKey }
+                });
+                if (pedidoPrevio) {
+                    console.warn(`[IDEMPOTENCIA] Bloqueada orden duplicada. Devolviendo ID original: ${pedidoPrevio.id}`);
+                    return NextResponse.json({ success: true, pedidoId: pedidoPrevio.id });
                 }
             }
+            throw dbError; // Si es otro error de base de datos, que crashee normal
         }
 
         return NextResponse.json({ success: true, pedidoId: nuevoPedido.id });
