@@ -2,6 +2,49 @@ import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { verificarToken } from "@/lib/auth";
 import { getDollarRate } from "@/lib/getDollar";
+import { z } from "zod";
+
+const tratamientoSchema = z.object({
+    id: z.number().int().positive()
+});
+
+const itemSchema = z.object({
+    id: z.number().int().positive(),
+    cantidad: z.number().int().min(1).max(100), // LÍMITE SUPERIOR Y NEGATIVO APLICADO
+    ojo: z.enum(["DERECHO", "IZQUIERDO", "AMBOS"]).optional().default("AMBOS"),
+    esfera: z.number().nullable().optional(),
+    cilindro: z.number().nullable().optional(),
+    eje: z.number().int().min(0).max(180).nullable().optional(),
+    adicion: z.number().nullable().optional(),
+    prisma: z.number().nullable().optional(),
+    eje_prisma: z.number().int().min(0).max(360).nullable().optional(),
+    ejePrisma: z.number().int().min(0).max(360).nullable().optional(),
+
+    esferaOD: z.number().nullable().optional(),
+    cilindroOD: z.number().nullable().optional(),
+    ejeOD: z.number().int().min(0).max(180).nullable().optional(),
+    adicionOD: z.number().nullable().optional(),
+    prismaOD: z.number().nullable().optional(),
+    ejePrismaOD: z.number().int().min(0).max(360).nullable().optional(),
+
+    esferaOI: z.number().nullable().optional(),
+    cilindroOI: z.number().nullable().optional(),
+    ejeOI: z.number().int().min(0).max(180).nullable().optional(),
+    adicionOI: z.number().nullable().optional(),
+    prismaOI: z.number().nullable().optional(),
+    ejePrismaOI: z.number().int().min(0).max(360).nullable().optional(),
+
+    armazonTransversal: z.number().nullable().optional(),
+    armazonAltura: z.number().nullable().optional(),
+    armazonDiagonal: z.number().nullable().optional(),
+    armazonPuente: z.number().nullable().optional(),
+    tratamientos: z.array(tratamientoSchema).optional()
+});
+
+const pedidoSchema = z.object({
+    idempotencyKey: z.string().min(10, { message: "Falta Clave de Idempotencia" }),
+    items: z.array(itemSchema).min(1, { message: "El carrito está vacío" })
+});
 
 export async function POST(req: Request) {
     try {
@@ -11,29 +54,25 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { items, idempotencyKey } = body;
+        
+        // ZOD BOUNDARY VALIDATION
+        const parsedResult = pedidoSchema.safeParse(body);
+        if (!parsedResult.success) {
+            return NextResponse.json({ 
+                error: "Violación de protocolo detectada (Valores inválidos).", 
+                detalles: parsedResult.error.format() 
+            }, { status: 400 });
+        }
+
+        const { items, idempotencyKey } = parsedResult.data;
 
         const usuario_id = tokenPayload.id;
 
-        // 1. Validaciones
-        if (!idempotencyKey) {
-            return NextResponse.json({ error: "Falta Clave Única de Transacción. Recarga la página." }, { status: 400 });
+        // 1. Verdad Absoluta Cambiaria (Kill Switch Reactivado)
+        const cotizacion = await getDollarRate();
+        if (!cotizacion) {
+            return NextResponse.json({ error: "Fallo crítico: Cotización cambiaria inoperativa o caducada. Ventas suspendidas por seguridad." }, { status: 503 });
         }
-        if (!items || items.length === 0) {
-            return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
-        }
-
-        // Validación estricta anti-fraude (Hack de cantidades negativas)
-        for (const item of items) {
-            if (!Number.isInteger(Number(item.cantidad)) || Number(item.cantidad) <= 0) {
-                return NextResponse.json({ error: "Cantidades inválidas en la orden. Violación Zero-Trust interceptada." }, { status: 400 });
-            }
-        }
-
-        // 1.B Verdad Absoluta Cambiaria
-
-        let cotizacion = await getDollarRate();
-        if (!cotizacion) cotizacion = 1480;
 
         // EXTRAER IDS ÚNICOS PARA BÚSQUEDA MASIVA EN BD
         const productoIds = [...new Set(items.map((i: any) => i.id))];
