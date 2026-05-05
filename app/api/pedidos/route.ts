@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import { verificarToken } from "@/lib/auth";
 import { getDollarRate } from "@/lib/getDollar";
 import { z } from "zod";
+import { IVA_PORCENTAJE } from "@/lib/cuentas-bancarias";
 
 const tratamientoSchema = z.object({
     id: z.number().int().positive()
@@ -43,6 +44,8 @@ const itemSchema = z.object({
 
 const pedidoSchema = z.object({
     idempotencyKey: z.string().min(10, { message: "Falta Clave de Idempotencia" }),
+    tipo_comprobante: z.enum(["FACTURA_A", "REMITO"]),
+    metodo_envio: z.enum(["ANDREANI", "CORREO_ARGENTINO", "OCA"]),
     items: z.array(itemSchema).min(1, { message: "El carrito está vacío" })
 });
 
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        const { items, idempotencyKey } = parsedResult.data;
+        const { items, idempotencyKey, tipo_comprobante, metodo_envio } = parsedResult.data;
 
         const usuario_id = tokenPayload.id;
 
@@ -180,7 +183,11 @@ export async function POST(req: Request) {
             };
         });
 
-        // 4. Crear Pedido con detalles (Con Protección de Idempotencia)
+        // 4. Calcular IVA si corresponde (Factura A = +21%)
+        const total_ars_base = server_total_usd * cotizacion;
+        const monto_iva_ars = tipo_comprobante === "FACTURA_A" ? total_ars_base * IVA_PORCENTAJE : 0;
+
+        // 5. Crear Pedido con detalles (Con Protección de Idempotencia)
         let nuevoPedido;
         try {
             nuevoPedido = await db.pedidos.create({
@@ -188,9 +195,12 @@ export async function POST(req: Request) {
                     usuario_id: Number(usuario_id),
                     idempotency_key: idempotencyKey,
                     estado: "PENDIENTE",
+                    metodo_envio: metodo_envio,
                     cotizacion_dolar_dia: cotizacion,
                     total_usd: server_total_usd,
-                    total_ars: server_total_usd * cotizacion,
+                    total_ars: total_ars_base,
+                    tipo_comprobante: tipo_comprobante,
+                    monto_iva_ars: monto_iva_ars,
 
                     detalles_pedido: {
                         create: detalles_preparados.map(d => {
@@ -231,7 +241,13 @@ export async function POST(req: Request) {
             throw dbError; // Si es otro error de base de datos, que crashee normal
         }
 
-        return NextResponse.json({ success: true, pedidoId: nuevoPedido.id });
+        return NextResponse.json({ 
+            success: true, 
+            pedidoId: nuevoPedido.id,
+            total_ars: total_ars_base,
+            monto_iva_ars: monto_iva_ars,
+            tipo_comprobante: tipo_comprobante,
+        });
 
     } catch (error: any) {
         console.error("ERROR_CREAR_PEDIDO:", error);

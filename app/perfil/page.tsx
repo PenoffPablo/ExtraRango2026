@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign, XCircle, IdCard } from "lucide-react";
+import { User, Phone, Save, AlertTriangle, Lock, ShoppingBag, Package, Calendar, DollarSign, XCircle, IdCard, MapPin, Building2, Copy, CheckCircle, Clock, FileText, Receipt, ChevronDown, ChevronUp } from "lucide-react";
+import { CUENTAS_BANCARIAS, type TipoComprobante, DESCUENTO_HORAS_LIMITE, DESCUENTO_ANTICIPADO_PORCENTAJE } from "@/lib/cuentas-bancarias";
 
 export default function PerfilPage() {
     const router = useRouter();
@@ -9,12 +10,19 @@ export default function PerfilPage() {
     const [pedidos, setPedidos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [expandedPedido, setExpandedPedido] = useState<number | null>(null);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [now, setNow] = useState(new Date());
 
     const [formData, setFormData] = useState({
         nombre: "",
         apellido: "",
         telefono: "",
         cuil: "",
+        codigo_postal: "",
+        localidad: "",
+        razon_social: "",
+        condicion_fiscal: "",
         password: ""
     });
 
@@ -33,6 +41,10 @@ export default function PerfilPage() {
             apellido: parsedUser.apellido || "",
             telefono: parsedUser.telefono || "",
             cuil: parsedUser.cuil || "",
+            codigo_postal: parsedUser.codigo_postal || "",
+            localidad: parsedUser.localidad || "",
+            razon_social: parsedUser.razon_social || "",
+            condicion_fiscal: parsedUser.condicion_fiscal || "",
             password: ""
         });
 
@@ -49,6 +61,12 @@ export default function PerfilPage() {
             });
 
     }, [router]);
+
+    // Countdown ticker — actualiza cada minuto
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -120,6 +138,31 @@ export default function PerfilPage() {
         }
     };
 
+    const copyToClipboard = async (text: string, fieldId: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+        }
+        setCopiedField(fieldId);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
+
+    const getCountdown = (fechaPedido: string) => {
+        const fecha = new Date(fechaPedido);
+        const limite = new Date(fecha.getTime() + DESCUENTO_HORAS_LIMITE * 60 * 60 * 1000);
+        const diff = limite.getTime() - now.getTime();
+        if (diff <= 0) return null; // Expirado
+        const horas = Math.floor(diff / (1000 * 60 * 60));
+        const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return { horas, minutos };
+    };
+
     if (loading) return <div className="pt-32 text-center font-bold text-[#1F4E79] animate-pulse">CARGANDO PERFIL...</div>;
 
     return (
@@ -172,6 +215,45 @@ export default function PerfilPage() {
                                 <div className="relative">
                                     <IdCard size={14} className="absolute left-3 top-3.5 text-gray-400" />
                                     <input name="cuil" value={formData.cuil} onChange={handleChange} placeholder="Sin guiones (ej: 20123456789)" className="w-full pl-9 bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold font-mono focus:outline-none focus:border-[#00D1C1]" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* TARJETA 1B: DATOS FISCALES Y ENVÍO */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-2 mb-6 border-b pb-2 border-gray-100">
+                            <Building2 className="text-[#00D1C1]" size={20} />
+                            <h2 className="font-bold text-gray-700 uppercase text-sm">Datos Fiscales y Envío</h2>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Razón Social</label>
+                                    <input name="razon_social" value={formData.razon_social} onChange={handleChange} placeholder="Óptica / Empresa" className="w-full bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-[#00D1C1]" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Condición Fiscal</label>
+                                    <select name="condicion_fiscal" value={formData.condicion_fiscal} onChange={handleChange as any} className="w-full bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-[#00D1C1] appearance-none">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="Responsable Inscripto">Responsable Inscripto</option>
+                                        <option value="Monotributo">Monotributo</option>
+                                        <option value="Exento">Exento</option>
+                                        <option value="Consumidor Final">Consumidor Final</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Localidad</label>
+                                    <input name="localidad" value={formData.localidad} onChange={handleChange} placeholder="Tu localidad" className="w-full bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-[#00D1C1]" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Código Postal</label>
+                                    <div className="relative">
+                                        <MapPin size={14} className="absolute left-3 top-3.5 text-gray-400" />
+                                        <input name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} placeholder="Ej: 5500" className="w-full pl-9 bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-sm font-semibold font-mono focus:outline-none focus:border-[#00D1C1]" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -250,6 +332,18 @@ export default function PerfilPage() {
                                                     <DollarSign size={14} />
                                                     {Number(pedido.total_ars).toFixed(2)}
                                                 </div>
+                                                {/* Barra de progreso de pago */}
+                                                {(pedido.total_pagado_ars !== null && pedido.total_pagado_ars !== undefined) && (
+                                                    <div className="w-20">
+                                                        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                            <div
+                                                                className="bg-[#00D1C1] h-1.5 rounded-full"
+                                                                style={{ width: `${Math.min(100, (Number(pedido.total_pagado_ars) / Number(pedido.total_ars)) * 100)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[8px] text-gray-400 font-bold">{Math.round((Number(pedido.total_pagado_ars) / Number(pedido.total_ars)) * 100)}% pagado</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${pedido.estado === 'COMPLETADO' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
                                                 }`}>
@@ -298,6 +392,129 @@ export default function PerfilPage() {
                                                 </div>
                                             </div>
                                         ))}
+
+                                        {/* SECCIÓN DE PAGO — solo para pedidos pendientes */}
+                                        {(pedido.estado === "PENDIENTE" || pedido.estado === "CONFIRMADO") && pedido.tipo_comprobante && (() => {
+                                            const cuenta = CUENTAS_BANCARIAS[pedido.tipo_comprobante as TipoComprobante];
+                                            const totalBase = Number(pedido.total_ars);
+                                            const iva = Number(pedido.monto_iva_ars || 0);
+                                            const totalConIva = totalBase + iva;
+                                            const pagado = Number(pedido.total_pagado_ars || 0);
+                                            const descuento = Number(pedido.descuento_anticipado || 0);
+                                            const countdown = getCountdown(pedido.fecha_pedido);
+                                            const estaPagado = pagado >= totalConIva;
+                                            const isExpanded = expandedPedido === pedido.id;
+
+                                            return (
+                                                <div className="mt-3 border-t border-gray-100 pt-3">
+                                                    <button
+                                                        onClick={() => setExpandedPedido(isExpanded ? null : pedido.id)}
+                                                        className="w-full flex items-center justify-between text-xs font-black uppercase tracking-wide text-[#1F4E79] hover:text-[#00D1C1] transition-colors py-1"
+                                                    >
+                                                        <span className="flex items-center gap-2">
+                                                            <DollarSign size={14} />
+                                                            {estaPagado ? "Pago completado ✅" : "Datos para Transferencia"}
+                                                        </span>
+                                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                    </button>
+
+                                                    {isExpanded && (
+                                                        <div className="mt-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                                                            {/* Countdown */}
+                                                            {!estaPagado && countdown && (
+                                                                <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-center gap-2">
+                                                                    <Clock size={14} className="text-amber-500 shrink-0" />
+                                                                    <p className="text-[10px] text-amber-700 font-bold">
+                                                                        ⏰ Pagá en las próximas <span className="font-black">{countdown.horas}h {countdown.minutos}m</span> y obtené un <span className="font-black">{Math.round(DESCUENTO_ANTICIPADO_PORCENTAJE * 100)}% de descuento</span>
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            {!estaPagado && !countdown && (
+                                                                <div className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                                                                    <p className="text-[10px] text-gray-500 font-bold">⌛ El plazo para el descuento por pago anticipado ha expirado.</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Monto */}
+                                                            <div className="bg-gradient-to-r from-[#1F4E79] to-[#00D1C1] rounded-xl p-3 text-white">
+                                                                <p className="text-[9px] font-bold uppercase tracking-widest text-white/60">Monto a transferir</p>
+                                                                <p className="text-xl font-black">${totalConIva.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</p>
+                                                                {iva > 0 && (
+                                                                    <p className="text-[9px] text-white/60">Base: ${totalBase.toLocaleString('es-AR', { minimumFractionDigits: 2 })} + IVA: ${iva.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</p>
+                                                                )}
+                                                                {countdown && !estaPagado && (
+                                                                    <p className="text-[9px] text-amber-200 font-bold mt-1">
+                                                                        Con dto. anticipado: ${(totalConIva * (1 - DESCUENTO_ANTICIPADO_PORCENTAJE)).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Datos bancarios */}
+                                                            {cuenta && !estaPagado && (
+                                                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-3 space-y-2">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        {pedido.tipo_comprobante === "FACTURA_A" ? <FileText size={12} className="text-[#1F4E79]" /> : <Receipt size={12} className="text-[#00D1C1]" />}
+                                                                        <p className="text-[9px] font-black text-gray-400 uppercase">
+                                                                            {pedido.tipo_comprobante === "FACTURA_A" ? "Factura A — Procynter SRL" : "Remito — Ricardo Impagliazzo"}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                                                        <div>
+                                                                            <p className="text-gray-400 font-bold uppercase text-[8px]">Titular</p>
+                                                                            <p className="font-bold text-gray-700">{cuenta.titular}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-gray-400 font-bold uppercase text-[8px]">Banco</p>
+                                                                            <p className="font-bold text-gray-700">{cuenta.banco}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* CBU copiable */}
+                                                                    <div className="bg-white rounded-lg border border-gray-200 px-2.5 py-2">
+                                                                        <div className="flex flex-col gap-1.5">
+                                                                            <div className="min-w-0">
+                                                                                <p className="text-[8px] font-bold text-gray-400 uppercase">CBU</p>
+                                                                                <p className="text-[11px] font-black text-[#1F4E79] font-mono break-all leading-relaxed">{cuenta.cbu}</p>
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => copyToClipboard(cuenta.cbu, `cbu-${pedido.id}`)}
+                                                                                className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-black transition-all w-full ${
+                                                                                    copiedField === `cbu-${pedido.id}` ? "bg-green-100 text-green-600" : "bg-[#1F4E79]/10 text-[#1F4E79] hover:bg-[#1F4E79]/20"
+                                                                                }`}
+                                                                            >
+                                                                                {copiedField === `cbu-${pedido.id}` ? <><CheckCircle size={10} /> Copiado</> : <><Copy size={10} /> Copiar CBU</>}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Alias copiable */}
+                                                                    <div className="bg-white rounded-lg border border-gray-200 px-2.5 py-2">
+                                                                        <div className="flex flex-col gap-1.5">
+                                                                            <div className="min-w-0">
+                                                                                <p className="text-[8px] font-bold text-gray-400 uppercase">Alias</p>
+                                                                                <p className="text-[11px] font-black text-[#00D1C1] break-all">{cuenta.alias}</p>
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => copyToClipboard(cuenta.alias, `alias-${pedido.id}`)}
+                                                                                className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-black transition-all w-full ${
+                                                                                    copiedField === `alias-${pedido.id}` ? "bg-green-100 text-green-600" : "bg-[#00D1C1]/10 text-[#00D1C1] hover:bg-[#00D1C1]/20"
+                                                                                }`}
+                                                                            >
+                                                                                {copiedField === `alias-${pedido.id}` ? <><CheckCircle size={10} /> Copiado</> : <><Copy size={10} /> Copiar Alias</>}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {estaPagado && descuento > 0 && (
+                                                                <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                                                                    <p className="text-[10px] text-green-700 font-bold">🎉 ¡Descuento por pago anticipado aplicado! Ahorro: ${descuento.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             ))}

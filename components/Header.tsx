@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import {
     Search, LogIn, CircleDollarSign, User, LogOut,
     ShoppingCart, ChevronDown, Trash2, UserCircle, Menu, X,
-    ClipboardList
+    ClipboardList, AlertTriangle
 } from "lucide-react";
 import CheckoutAction from "./Cart";
 import SuccessModal from "./SuccessModal";
+import CheckoutConfirmModal from "./CheckoutConfirmModal";
+import type { TipoComprobante } from "@/lib/cuentas-bancarias";
 
 export default function Header() {
     const router = useRouter();
@@ -21,6 +23,12 @@ export default function Header() {
     const [cartItems, setCartItems] = useState<any[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
     const [lastOrderId, setLastOrderId] = useState("");
+    const [lastTipoComprobante, setLastTipoComprobante] = useState<string | undefined>(undefined);
+    const [lastTotalArs, setLastTotalArs] = useState<number | undefined>(undefined);
+    const [lastMontoIvaArs, setLastMontoIvaArs] = useState<number | undefined>(undefined);
+    const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+    const [checkoutTipoComprobante, setCheckoutTipoComprobante] = useState<TipoComprobante>("REMITO");
+    const [checkoutMetodoEnvio, setCheckoutMetodoEnvio] = useState<string>("");
 
     const totalItems = cartItems.reduce((acc, item) => acc + (item.cantidad || item.quantity || 1), 0);
     const totalAmount = cartItems.reduce((acc, item) => {
@@ -64,19 +72,32 @@ export default function Header() {
 
         const handleOrderSuccess = (e: any) => {
             setLastOrderId(e.detail.pedidoId);
+            setLastTipoComprobante(e.detail.tipoComprobante);
+            setLastTotalArs(e.detail.totalArs);
+            setLastMontoIvaArs(e.detail.montoIvaArs);
             setShowSuccess(true);
-            setIsCartOpen(false); // Cerrar el carrito automáticamente
+            setIsCartOpen(false);
+            setShowCheckoutConfirm(false);
+        };
+
+        const handleCheckoutPreview = (e: any) => {
+            setCheckoutTipoComprobante(e.detail.tipoComprobante);
+            setCheckoutMetodoEnvio(e.detail.metodoEnvio);
+            setIsCartOpen(false);
+            setShowCheckoutConfirm(true);
         };
 
         window.addEventListener("userLogin", checkUser);
         window.addEventListener("cartUpdated", updateCart);
         window.addEventListener("orderSuccess", handleOrderSuccess);
+        window.addEventListener("checkoutPreview", handleCheckoutPreview);
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
             window.removeEventListener("userLogin", checkUser);
             window.removeEventListener("cartUpdated", updateCart);
             window.removeEventListener("orderSuccess", handleOrderSuccess);
+            window.removeEventListener("checkoutPreview", handleCheckoutPreview);
         };
     }, []);
 
@@ -105,7 +126,7 @@ export default function Header() {
                         {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                     <Link href="/" className="group flex items-center gap-2 shrink-0">
-                        <span className={`text-2xl md:text-3xl font-black tracking-tighter transition-colors ${textPrimary}`}>EXTRARANGO</span>
+                        <span className={`text-2xl md:text-3xl font-black tracking-tighter transition-colors ${textPrimary}`}>EXTRA-RANGO</span>
                     </Link>
                 </div>
 
@@ -136,55 +157,55 @@ export default function Header() {
                         </button>
 
                         {isCartOpen && (
-                            <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden text-gray-900">
-                                <div className="p-4">
-                                    <h3 className="font-bold border-b pb-2 mb-3 text-sm flex justify-between">
-                                        <span>Tu Pedido</span>
-                                        <span className="text-xs text-gray-400 font-normal">USD ref: ${cotizacion}</span>
+                            <div className="fixed inset-x-0 bottom-0 top-auto md:absolute md:inset-auto md:right-0 md:top-full mt-0 md:mt-3 w-full md:w-[420px] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden text-gray-900 max-h-[85vh] md:max-h-none">
+                                <div className="p-5">
+                                    <h3 className="font-black border-b pb-3 mb-4 text-sm flex justify-between items-center">
+                                        <span className="uppercase tracking-wide text-[#1F4E79]">Tu Pedido</span>
+                                        <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-2.5 py-1 rounded-lg">USD ref: ${cotizacion}</span>
                                     </h3>
                                     {cartItems.length === 0 ? (
-                                        <p className="text-sm text-gray-500 text-center py-4">El carrito está vacío</p>
+                                        <p className="text-sm text-gray-500 text-center py-6">El carrito está vacío</p>
                                     ) : (
-                                        <div className="max-h-72 overflow-y-auto space-y-3">
+                                        <div className="max-h-[360px] overflow-y-auto space-y-3 pr-1">
                                             {cartItems.map((item, idx) => {
                                                 const itemKey = item.cartItemId || item.id || idx;
                                                 const itemTotal = item.totalUsd
                                                     ? item.totalUsd * cotizacion
                                                     : (item.precio || 0) * (item.quantity || 1) * cotizacion;
                                                 return (
-                                                    <div key={itemKey} className="flex justify-between items-start text-sm group border-b border-gray-50 pb-2 last:border-0">
-                                                        <div className="flex-1 min-w-0 pr-2">
-                                                            <p className="font-bold text-[#1F4E79] truncate text-xs">{item.nombre}</p>
-                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                    <div key={itemKey} className="flex justify-between items-start text-sm group border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                                                        <div className="flex-1 min-w-0 pr-3">
+                                                            <p className="font-bold text-[#1F4E79] text-[13px] leading-snug">{item.nombre}</p>
+                                                            <div className="flex flex-wrap gap-1.5 mt-1.5">
                                                                 {item.ojo && (
-                                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${item.ojo === "AMBOS" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"}`}>
+                                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${item.ojo === "AMBOS" ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"}`}>
                                                                         {item.ojo === "AMBOS" ? "PAR" : `UNIDAD (${item.ojo})`}
                                                                     </span>
                                                                 )}
                                                                 {/* Recetas separadas por ojo (AMBOS) */}
                                                                 {item.ojo === "AMBOS" && item.esferaOD !== undefined ? (
-                                                                    <div className="w-full flex flex-col gap-0.5 mt-0.5">
-                                                                        <span className="text-[9px] font-medium text-gray-400">
+                                                                    <div className="w-full flex flex-col gap-0.5 mt-1">
+                                                                        <span className="text-[10px] font-medium text-gray-400">
                                                                             <span className="font-bold text-blue-500">OD:</span> ESF:{item.esferaOD >= 0 ? `+${item.esferaOD}` : item.esferaOD} CIL:{item.cilindroOD >= 0 ? `+${item.cilindroOD}` : item.cilindroOD}{item.adicionOD ? ` ADD:+${item.adicionOD}` : ''}
                                                                         </span>
-                                                                        <span className="text-[9px] font-medium text-gray-400">
+                                                                        <span className="text-[10px] font-medium text-gray-400">
                                                                             <span className="font-bold text-emerald-500">OI:</span> ESF:{item.esferaOI >= 0 ? `+${item.esferaOI}` : item.esferaOI} CIL:{item.cilindroOI >= 0 ? `+${item.cilindroOI}` : item.cilindroOI}{item.adicionOI ? ` ADD:+${item.adicionOI}` : ''}
                                                                         </span>
                                                                     </div>
                                                                 ) : (
                                                                     <>
                                                                         {item.esfera !== undefined && item.esfera !== null && (
-                                                                            <span className="text-[9px] font-medium text-gray-400">
+                                                                            <span className="text-[10px] font-medium text-gray-400">
                                                                                 ESF:{item.esfera >= 0 ? `+${item.esfera}` : item.esfera}
                                                                             </span>
                                                                         )}
                                                                         {item.cilindro !== undefined && item.cilindro !== null && (
-                                                                            <span className="text-[9px] font-medium text-gray-400">
+                                                                            <span className="text-[10px] font-medium text-gray-400">
                                                                                 CIL:{item.cilindro >= 0 ? `+${item.cilindro}` : item.cilindro}
                                                                             </span>
                                                                         )}
                                                                         {item.adicion !== undefined && item.adicion !== null && (
-                                                                            <span className="text-[9px] font-medium text-amber-500">
+                                                                            <span className="text-[10px] font-medium text-amber-500">
                                                                                 ADD:+{item.adicion}
                                                                             </span>
                                                                         )}
@@ -192,30 +213,31 @@ export default function Header() {
                                                                 )}
                                                             </div>
                                                             {item.tratamientos && item.tratamientos.length > 0 && (
-                                                                <p className="text-[9px] text-[#00D1C1] font-medium mt-0.5 truncate">
+                                                                <p className="text-[10px] text-[#00D1C1] font-medium mt-1">
                                                                     +{item.tratamientos.length} tratamiento{item.tratamientos.length > 1 ? 's' : ''}
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        <div className="flex flex-col items-end gap-1 shrink-0">
-                                                            <span className="font-bold text-[#00D1C1] text-xs">
+                                                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                                            <span className="font-black text-[#00D1C1] text-sm">
                                                                 ${itemTotal.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </span>
-                                                            <button onClick={() => handleRemoveItem(itemKey)} className="text-gray-300 hover:text-red-500 transition-colors">
-                                                                <Trash2 size={13} />
+                                                            <button onClick={() => handleRemoveItem(itemKey)} className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                                                                <Trash2 size={14} />
                                                             </button>
                                                         </div>
                                                     </div>
                                                 );
                                             })}
-                                            <div className="border-t border-gray-100 mt-3 pt-3 bg-gray-50 -mx-4 px-4 pb-2">
-                                                <div className="flex justify-between items-center mb-3">
+                                            <div className="border-t border-gray-100 mt-4 pt-4 bg-gray-50/80 -mx-5 px-5 pb-3 rounded-b-2xl">
+                                                <div className="flex justify-between items-center mb-4">
                                                     <span className="text-sm font-bold text-gray-600 uppercase">Total Estimado:</span>
-                                                    <span className="text-xl font-black text-[#1F4E79]">
+                                                    <span className="text-2xl font-black text-[#1F4E79]">
                                                         ${totalAmount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                                 <CheckoutAction />
+                                                <p className="text-[9px] text-gray-400 text-center mt-2">Precios sin impuestos. Pago anticipado (24hs): 10% dto.</p>
                                             </div>
                                         </div>
                                     )}
@@ -244,14 +266,24 @@ export default function Header() {
                                         </div>
                                         <div className="p-2 flex flex-col gap-1">
                                             {usuario.rol === "ADMIN" && (
+                                                <>
                                                 <Link href="/admin/pedidos" onClick={() => setIsProfileOpen(false)} className="group flex items-center w-full px-4 py-3 text-sm font-bold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all gap-3 mb-1">
                                                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-amber-600 shadow-sm border border-amber-100"><ClipboardList size={18} /></div>
                                                     <span className="whitespace-nowrap">Gestor de Pedidos</span>
                                                 </Link>
+                                                <Link href="/admin/reclamos" onClick={() => setIsProfileOpen(false)} className="group flex items-center w-full px-4 py-3 text-sm font-bold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-all gap-3 mb-1">
+                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-red-600 shadow-sm border border-red-100"><AlertTriangle size={18} /></div>
+                                                    <span className="whitespace-nowrap">Gestión Reclamos</span>
+                                                </Link>
+                                                </>
                                             )}
                                             <Link href="/perfil" onClick={() => setIsProfileOpen(false)} className="group flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all gap-3">
                                                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 group-hover:bg-blue-200 group-hover:text-blue-700 transition-colors shrink-0"><UserCircle size={18} /></div>
                                                 <span className="whitespace-nowrap">Ver perfil</span>
+                                            </Link>
+                                            <Link href="/reclamos" onClick={() => setIsProfileOpen(false)} className="group flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-all gap-3">
+                                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 group-hover:bg-amber-200 group-hover:text-amber-700 transition-colors shrink-0"><AlertTriangle size={18} /></div>
+                                                <span className="whitespace-nowrap">Reclamos</span>
                                             </Link>
                                             <button onClick={handleLogout} className="group flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg hover:bg-red-50 hover:text-red-700 transition-all gap-3">
                                                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 group-hover:bg-red-200 group-hover:text-red-700 transition-colors shrink-0"><LogOut size={18} /></div>
@@ -330,6 +362,15 @@ export default function Header() {
                                 <span>Mi Perfil</span>
                             </Link>
 
+                            <Link
+                                href="/reclamos"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 text-amber-700 font-medium hover:bg-amber-100 border border-amber-100"
+                            >
+                                <AlertTriangle size={20} />
+                                <span>Reclamos</span>
+                            </Link>
+
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 mt-2"
@@ -359,10 +400,21 @@ export default function Header() {
                 </div>
             )}
 
+            {showCheckoutConfirm && (
+                <CheckoutConfirmModal
+                    tipoComprobante={checkoutTipoComprobante}
+                    metodoEnvio={checkoutMetodoEnvio}
+                    onClose={() => setShowCheckoutConfirm(false)}
+                />
+            )}
+
             {showSuccess && (
-                <SuccessModal 
-                    pedidoId={lastOrderId} 
-                    onClose={() => setShowSuccess(false)} 
+                <SuccessModal
+                    pedidoId={lastOrderId}
+                    tipoComprobante={lastTipoComprobante as any}
+                    totalArs={lastTotalArs}
+                    montoIvaArs={lastMontoIvaArs}
+                    onClose={() => setShowSuccess(false)}
                 />
             )}
         </header>

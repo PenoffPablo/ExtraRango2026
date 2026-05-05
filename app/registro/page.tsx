@@ -93,7 +93,9 @@ export default function RegistroPage() {
                             </div>
                             <input type="text" name="numeracion" placeholder="Nro" required onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold" />
                             <input type="text" name="departamento" placeholder="Dpto / Piso" onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold" />
-                            <select name="provincia" onChange={handleChange} className="md:col-span-2 w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold">
+                            <input type="text" name="localidad" placeholder="Localidad" onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold" />
+                            <input type="text" name="codigo_postal" placeholder="Código Postal" onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold font-mono" />
+                            <select name="provincia" onChange={handleChange} className="md:col-span-3 w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00D1C1] text-sm font-semibold">
                                 <option value="Mendoza">Mendoza</option>
                                 <option value="San Juan">San Juan</option>
                                 <option value="San Luis">San Luis</option>

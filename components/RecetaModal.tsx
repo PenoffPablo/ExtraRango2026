@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { X, Eye, ShoppingCart, Plus, Check } from "lucide-react";
 
 type Producto = {
@@ -65,6 +65,8 @@ const CamposReceta = ({
     campoMmVal,
     setCampoMmVal,
     producto,
+    inputRefs,
+    refStartIndex,
 }: {
     label: string;
     esferaVal: string;
@@ -91,7 +93,24 @@ const CamposReceta = ({
     campoMmVal?: string;
     setCampoMmVal?: (v: string) => void;
     producto: Producto;
+    inputRefs?: React.MutableRefObject<(HTMLInputElement | null)[]>;
+    refStartIndex?: number;
 }) => {
+    // Tab-through: Avanzar al siguiente campo con Enter
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, fieldIndex: number) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (inputRefs?.current) {
+                const nextRef = inputRefs.current[fieldIndex + 1];
+                if (nextRef) nextRef.focus();
+            }
+        }
+    };
+    const assignRef = (el: HTMLInputElement | null, localIndex: number) => {
+        if (inputRefs?.current && refStartIndex !== undefined) {
+            inputRefs.current[refStartIndex + localIndex] = el;
+        }
+    };
     const adicionValida = (val: string) => {
         if (val === "") return false;
         const n = Number(val);
@@ -112,6 +131,7 @@ const CamposReceta = ({
                         Esfera (SPH)
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 0)}
                         type="number"
                         step="0.25"
                         min={esferaDesde}
@@ -121,6 +141,7 @@ const CamposReceta = ({
                             setEsferaVal(e.target.value); 
                             setErrorMsg(""); 
                         }}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 0)}
                         placeholder={`Ej: ${esferaDesde.toFixed(2)}`}
                         className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${esferaVal !== "" && !esferaEsValida ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
@@ -135,6 +156,7 @@ const CamposReceta = ({
                         Cilindro (CYL)
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 1)}
                         type="number"
                         step="0.25"
                         min={-Math.abs(cilindroHasta)}
@@ -144,6 +166,7 @@ const CamposReceta = ({
                             setCilindroVal(e.target.value); 
                             setErrorMsg(""); 
                         }}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 1)}
                         placeholder="Ej: -1.00"
                         className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${cilindroVal !== "" && !cilindroEsValido ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
@@ -158,6 +181,7 @@ const CamposReceta = ({
                         Eje (AXIS)
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 2)}
                         type="number"
                         min="0"
                         max="180"
@@ -166,6 +190,7 @@ const CamposReceta = ({
                             setEjeVal(e.target.value);
                             setErrorMsg("");
                         }}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 2)}
                         placeholder="0-180°"
                         className={`w-full bg-gray-50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] focus:border-transparent ${ejeVal !== "" && (Number(ejeVal) < 0 || Number(ejeVal) > 180) ? "border-red-500 bg-red-50 ring-2 ring-red-200" : "border-gray-200"}`}
                     />
@@ -183,10 +208,12 @@ const CamposReceta = ({
                         Prisma (Δ)
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 3)}
                         type="number"
                         step="0.1"
                         value={prismaVal}
                         onChange={(e) => setPrismaVal(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 3)}
                         placeholder="Opcional"
                         className="w-full bg-white border border-purple-100 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
                     />
@@ -196,11 +223,13 @@ const CamposReceta = ({
                         Base / Eje Prisma
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 4)}
                         type="number"
                         min="0"
                         max="360"
                         value={ejePrismaVal}
                         onChange={(e) => setEjePrismaVal(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 4)}
                         placeholder="0-360°"
                         className="w-full bg-white border border-purple-100 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
                     />
@@ -236,12 +265,14 @@ const CamposReceta = ({
                         🔶 Adición (ADD)
                     </label>
                     <input
+                        ref={(el) => assignRef(el, 5)}
                         type="number"
                         step="0.25"
                         min="0.75"
                         max="3.50"
                         value={adicionVal}
                         onChange={(e) => { setAdicionVal(e.target.value); setErrorMsg(""); }}
+                        onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 5)}
                         placeholder="Ej: +2.00"
                         className={`w-full max-w-[200px] bg-amber-50/50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${adicionVal !== "" && !adicionValida(adicionVal) ? "border-red-400 bg-red-50/50" : "border-amber-200"}`}
                     />
@@ -300,6 +331,9 @@ const CamposReceta = ({
 export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
     const [ojo, setOjo] = useState<"DERECHO" | "IZQUIERDO" | "AMBOS">("AMBOS");
 
+    // Ref para tab-through automático entre campos de receta
+    // Slots: 0-5 = OD (esf, cil, eje, prisma, ejePrisma, adicion), 6-11 = OI
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     // Campos para ojo único (DERECHO o IZQUIERDO)
     const [esfera, setEsfera] = useState<string>("");
     const [cilindro, setCilindro] = useState<string>("");
@@ -759,6 +793,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         campoMmVal={campoMmOD}
                                         setCampoMmVal={setCampoMmOD}
                                         producto={producto}
+                                        inputRefs={inputRefs}
+                                        refStartIndex={0}
                                     />
                                 </div>
                                 <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4">
@@ -788,6 +824,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                         campoMmVal={campoMmOI}
                                         setCampoMmVal={setCampoMmOI}
                                         producto={producto}
+                                        inputRefs={inputRefs}
+                                        refStartIndex={6}
                                     />
                                 </div>
                             </div>
@@ -818,6 +856,8 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 campoMmVal={campoMm}
                                 setCampoMmVal={setCampoMm}
                                 producto={producto}
+                                inputRefs={inputRefs}
+                                refStartIndex={0}
                             />
                         )}
                     </div>
@@ -960,8 +1000,12 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                         )}
                         <div className="border-t border-gray-200 pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
                             <span className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Total Estimado</span>
-                            <span className="text-2xl font-black text-[#1F4E79]">${totalArs.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
+                            <div className="flex flex-col items-end">
+                                <span className="text-2xl font-black text-[#1F4E79]">${totalArs.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
+                                <span className="text-[10px] text-gray-400 font-medium">Con impuestos: ${(totalArs * 1.21).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span>
+                            </div>
                         </div>
+                        <p className="text-[9px] text-gray-400 font-medium mt-1">* Precios sin impuestos. Pago anticipado: 10% de descuento.</p>
                     </div>
 
                     {errorMsg && (

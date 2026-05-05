@@ -111,6 +111,27 @@ export default function Hero({ productos }: HeroProps) {
                     <div className="h-1.5 w-32 bg-[#00D1C1] rounded-full mx-auto"></div>
                 </div>
 
+                {/* BANNER PROMOCIONAL */}
+                <div className="mb-8 bg-gradient-to-r from-[#00D1C1] to-[#1F4E79] rounded-2xl p-4 md:p-5 shadow-lg shadow-[#00D1C1]/20 text-white">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-center md:text-left">
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl animate-bounce">💰</span>
+                            <div>
+                                <p className="font-black text-sm md:text-base uppercase tracking-wide">Pagá en 24hs = 10% de Descuento</p>
+                                <p className="text-[11px] text-white/70 font-medium">Transferencia bancaria dentro de las 24 horas desde tu pedido</p>
+                            </div>
+                        </div>
+                        <div className="hidden md:block w-px h-8 bg-white/20"></div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">📦</span>
+                            <div>
+                                <p className="font-bold text-sm">Envíos a todo el país</p>
+                                <p className="text-[11px] text-white/70 font-medium">Costo calculado por código postal · A cargo del cliente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* FILTROS */}
                 <div className="mb-8 bg-gray-50/50 border border-gray-100 rounded-3xl p-6 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
@@ -209,7 +230,10 @@ export default function Hero({ productos }: HeroProps) {
                                     <div className="text-2xl font-black text-[#00D1C1] tracking-tighter">
                                         ${p.precio_ars || "Consultar"}
                                     </div>
-                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">precio base / par</p>
+                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">precio base / par · sin impuestos</p>
+                                    {p.precio_ars && (
+                                        <p className="text-[10px] text-gray-300 font-medium">Con impuestos: ${(Math.round(Number(p.precio_ars.replace(/\./g, '').replace(',', '.')) * 1.21)).toLocaleString('es-AR')}</p>
+                                    )}
                                 </div>
 
                                 <div className="col-span-3 text-right">

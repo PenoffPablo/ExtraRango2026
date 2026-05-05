@@ -47,4 +47,10 @@ next-env.d.ts
 /prisma/tratamientos.json
 /prisma/seed.ts
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 

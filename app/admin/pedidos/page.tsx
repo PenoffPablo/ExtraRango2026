@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Search, Eye, X, Phone, User, Calendar, PlusCircle, Ban, CheckCircle, DollarSign } from "lucide-react";
+import { Package, Search, Eye, X, Phone, User, Calendar, PlusCircle, Ban, CheckCircle, DollarSign, Wallet, Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function GestorPedidos() {
@@ -10,6 +10,12 @@ export default function GestorPedidos() {
     const [loading, setLoading] = useState(true);
     const [pedidoSeleccionado, setPedidoSeleccionado] = useState<any>(null);
     const [procesando, setProcesando] = useState(false);
+    // Pagos parciales
+    const [pagos, setPagos] = useState<any[]>([]);
+    const [resumenPago, setResumenPago] = useState<any>(null);
+    const [showPagoForm, setShowPagoForm] = useState(false);
+    const [pagoData, setPagoData] = useState({ monto_ars: "", metodo_pago: "Transferencia", referencia: "", notas: "" });
+    const [registrandoPago, setRegistrandoPago] = useState(false);
 
     const cargarPedidos = () => {
         const user = JSON.parse(localStorage.getItem("usuario_extrarango") || "{}");
@@ -115,7 +121,16 @@ export default function GestorPedidos() {
                                     <DollarSign size={16} />{Number(pedido.total_ars).toFixed(2)}
                                 </div>
                                 <button
-                                    onClick={() => setPedidoSeleccionado(pedido)}
+                                    onClick={async () => {
+                                        setPedidoSeleccionado(pedido);
+                                        setShowPagoForm(false);
+                                        try {
+                                            const res = await fetch(`/api/admin/pagos?pedido_id=${pedido.id}`);
+                                            const data = await res.json();
+                                            setPagos(data.pagos || []);
+                                            setResumenPago(data.resumen || null);
+                                        } catch { setPagos([]); setResumenPago(null); }
+                                    }}
                                     className="bg-[#1F4E79] text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 uppercase tracking-tight"
                                 >
                                     <Eye size={16} /> Gestionar
@@ -163,11 +178,21 @@ export default function GestorPedidos() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
-                                            onClick={() => setPedidoSeleccionado(pedido)}
-                                            className="bg-[#1F4E79] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#163a5c] transition-colors inline-flex items-center gap-2"
-                                        >
-                                            <Eye size={14} /> GESTIONAR
-                                        </button>
+                                        onClick={async () => {
+                                            setPedidoSeleccionado(pedido);
+                                            setShowPagoForm(false);
+                                            // Cargar pagos del pedido
+                                            try {
+                                                const res = await fetch(`/api/admin/pagos?pedido_id=${pedido.id}`);
+                                                const data = await res.json();
+                                                setPagos(data.pagos || []);
+                                                setResumenPago(data.resumen || null);
+                                            } catch { setPagos([]); setResumenPago(null); }
+                                        }}
+                                        className="bg-[#1F4E79] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#163a5c] transition-colors inline-flex items-center gap-2"
+                                    >
+                                        <Eye size={14} /> GESTIONAR
+                                    </button>
                                     </td>
                                 </tr>
                             ))}
@@ -251,6 +276,152 @@ export default function GestorPedidos() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* SECCIÓN DE PAGOS PARCIALES */}
+                            <div className="mt-6 border-t border-gray-100 pt-6">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Wallet size={14} className="text-[#00D1C1]" /> Pagos
+                                </h4>
+
+                                {/* Barra de progreso */}
+                                {resumenPago && (
+                                    <div className="mb-4">
+                                        <div className="flex justify-between text-xs font-bold mb-1">
+                                            <span className="text-gray-500">Pagado: ${Number(resumenPago.total_pagado_ars).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                            <span className="text-[#1F4E79]">
+                                                Total: ${Number(resumenPago.total_con_iva || resumenPago.total_ars).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                                {resumenPago.monto_iva_ars > 0 && <span className="text-[10px] text-gray-400 ml-1">(IVA incl.)</span>}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                            <div
+                                                className="bg-gradient-to-r from-[#00D1C1] to-[#1F4E79] h-3 rounded-full transition-all duration-500"
+                                                style={{ width: `${Math.min(100, (resumenPago.total_pagado_ars / (resumenPago.total_con_iva || resumenPago.total_ars)) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between text-[10px] mt-1">
+                                            <span className="text-[#00D1C1] font-bold">{Math.round((resumenPago.total_pagado_ars / (resumenPago.total_con_iva || resumenPago.total_ars)) * 100)}% pagado</span>
+                                            <span className="text-amber-600 font-bold">
+                                                Saldo: ${Number(resumenPago.saldo_pendiente).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                                {resumenPago.descuento_anticipado > 0 && <span className="text-green-600 ml-1">(dto. -${Number(resumenPago.descuento_anticipado).toLocaleString('es-AR', { minimumFractionDigits: 2 })})</span>}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Lista de pagos */}
+                                {pagos.length > 0 && (
+                                    <div className="space-y-2 mb-4">
+                                        {pagos.map((pago: any) => (
+                                            <div key={pago.id} className="flex justify-between items-center bg-green-50/50 border border-green-100 rounded-lg px-3 py-2">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle size={14} className="text-green-500" />
+                                                    <div>
+                                                        <p className="text-xs font-bold text-gray-700">${Number(pago.monto_ars).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</p>
+                                                        <p className="text-[9px] text-gray-400">{pago.metodo_pago} {pago.referencia ? `· Ref: ${pago.referencia}` : ''}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] text-gray-400 font-medium">{new Date(pago.fecha_pago).toLocaleDateString('es-AR')}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Botón/Formulario registrar pago */}
+                                {!showPagoForm ? (
+                                    <button
+                                        onClick={() => setShowPagoForm(true)}
+                                        className="w-full border-2 border-dashed border-[#00D1C1] text-[#00D1C1] py-2.5 rounded-xl text-xs font-black hover:bg-[#00D1C1]/5 transition-colors flex items-center justify-center gap-2 uppercase"
+                                    >
+                                        <Plus size={14} /> Registrar Pago
+                                    </button>
+                                ) : (
+                                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">Monto ARS *</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={pagoData.monto_ars}
+                                                    onChange={(e) => setPagoData({ ...pagoData, monto_ars: e.target.value })}
+                                                    placeholder="0.00"
+                                                    className="w-full bg-white border border-gray-200 p-2 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">Método</label>
+                                                <select
+                                                    value={pagoData.metodo_pago}
+                                                    onChange={(e) => setPagoData({ ...pagoData, metodo_pago: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 p-2 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#00D1C1] appearance-none"
+                                                >
+                                                    <option>Transferencia</option>
+                                                    <option>Efectivo</option>
+                                                    <option>MercadoPago</option>
+                                                    <option>Cheque</option>
+                                                    <option>Otro</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">Referencia / Comprobante</label>
+                                            <input
+                                                type="text"
+                                                value={pagoData.referencia}
+                                                onChange={(e) => setPagoData({ ...pagoData, referencia: e.target.value })}
+                                                placeholder="Nro transferencia, comprobante..."
+                                                className="w-full bg-white border border-gray-200 p-2 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#00D1C1]"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => { setShowPagoForm(false); setPagoData({ monto_ars: "", metodo_pago: "Transferencia", referencia: "", notas: "" }); }}
+                                                className="flex-1 py-2 text-gray-500 text-xs font-bold hover:bg-gray-100 rounded-lg uppercase"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                disabled={registrandoPago || !pagoData.monto_ars}
+                                                onClick={async () => {
+                                                    setRegistrandoPago(true);
+                                                    try {
+                                                        const res = await fetch("/api/admin/pagos", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                pedido_id: pedidoSeleccionado.id,
+                                                                monto_ars: Number(pagoData.monto_ars),
+                                                                metodo_pago: pagoData.metodo_pago,
+                                                                referencia: pagoData.referencia || undefined,
+                                                                notas: pagoData.notas || undefined,
+                                                            }),
+                                                        });
+                                                        if (res.ok) {
+                                                            alert("✅ Pago registrado");
+                                                            setShowPagoForm(false);
+                                                            setPagoData({ monto_ars: "", metodo_pago: "Transferencia", referencia: "", notas: "" });
+                                                            // Recargar pagos
+                                                            const pagosRes = await fetch(`/api/admin/pagos?pedido_id=${pedidoSeleccionado.id}`);
+                                                            const pagosData = await pagosRes.json();
+                                                            setPagos(pagosData.pagos || []);
+                                                            setResumenPago(pagosData.resumen || null);
+                                                            cargarPedidos();
+                                                        } else {
+                                                            const data = await res.json();
+                                                            alert("❌ " + (data.error || "Error"));
+                                                        }
+                                                    } catch { alert("Error de conexión"); }
+                                                    finally { setRegistrandoPago(false); }
+                                                }}
+                                                className="flex-1 bg-[#00D1C1] text-white py-2 rounded-lg text-xs font-black hover:bg-[#00b8a9] transition-colors shadow-lg shadow-[#00D1C1]/20 uppercase disabled:opacity-50"
+                                            >
+                                                {registrandoPago ? "Guardando..." : "Confirmar Pago"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
