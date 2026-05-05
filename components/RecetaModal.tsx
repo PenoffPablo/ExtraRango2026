@@ -132,13 +132,12 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 0)}
-                        type="number"
-                        step="0.25"
-                        min={esferaDesde}
-                        max={esferaHasta}
+                        type="text"
+                        inputMode="text"
                         value={esferaVal}
                         onChange={(e) => { 
-                            setEsferaVal(e.target.value); 
+                            const val = e.target.value.replace(',', '.');
+                            setEsferaVal(val); 
                             setErrorMsg(""); 
                         }}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 0)}
@@ -157,13 +156,12 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 1)}
-                        type="number"
-                        step="0.25"
-                        min={-Math.abs(cilindroHasta)}
-                        max={Math.abs(cilindroHasta)}
+                        type="text"
+                        inputMode="text"
                         value={cilindroVal}
                         onChange={(e) => { 
-                            setCilindroVal(e.target.value); 
+                            const val = e.target.value.replace(',', '.');
+                            setCilindroVal(val); 
                             setErrorMsg(""); 
                         }}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 1)}
@@ -182,12 +180,11 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 2)}
-                        type="number"
-                        min="0"
-                        max="180"
+                        type="text"
+                        inputMode="text"
                         value={ejeVal}
                         onChange={(e) => {
-                            setEjeVal(e.target.value);
+                            setEjeVal(e.target.value.replace(',', '.'));
                             setErrorMsg("");
                         }}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 2)}
@@ -209,10 +206,10 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 3)}
-                        type="number"
-                        step="0.1"
+                        type="text"
+                        inputMode="text"
                         value={prismaVal}
-                        onChange={(e) => setPrismaVal(e.target.value)}
+                        onChange={(e) => setPrismaVal(e.target.value.replace(',', '.'))}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 3)}
                         placeholder="Opcional"
                         className="w-full bg-white border border-purple-100 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
@@ -224,11 +221,10 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 4)}
-                        type="number"
-                        min="0"
-                        max="360"
+                        type="text"
+                        inputMode="text"
                         value={ejePrismaVal}
-                        onChange={(e) => setEjePrismaVal(e.target.value)}
+                        onChange={(e) => setEjePrismaVal(e.target.value.replace(',', '.'))}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 4)}
                         placeholder="0-360°"
                         className="w-full bg-white border border-purple-100 rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
@@ -244,12 +240,11 @@ const CamposReceta = ({
                         Campo Visual (mm)
                     </label>
                     <input
-                        type="number"
-                        min="20"
-                        max="30"
+                        type="text"
+                        inputMode="text"
                         value={campoMmVal}
                         onChange={(e) => {
-                            if (setCampoMmVal) setCampoMmVal(e.target.value);
+                            if (setCampoMmVal) setCampoMmVal(e.target.value.replace(',', '.'));
                             setErrorMsg("");
                         }}
                         placeholder={producto.nombre.toLowerCase().includes("lenticular") ? "Ej: 22 (De 20 a 24)" : "Ej: 25 (De 24 a 26)"}
@@ -266,12 +261,10 @@ const CamposReceta = ({
                     </label>
                     <input
                         ref={(el) => assignRef(el, 5)}
-                        type="number"
-                        step="0.25"
-                        min="0.75"
-                        max="3.50"
+                        type="text"
+                        inputMode="text"
                         value={adicionVal}
-                        onChange={(e) => { setAdicionVal(e.target.value); setErrorMsg(""); }}
+                        onChange={(e) => { setAdicionVal(e.target.value.replace(',', '.')); setErrorMsg(""); }}
                         onKeyDown={(e) => handleKeyDown(e, (refStartIndex ?? 0) + 5)}
                         placeholder="Ej: +2.00"
                         className={`w-full max-w-[200px] bg-amber-50/50 border rounded-xl py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${adicionVal !== "" && !adicionValida(adicionVal) ? "border-red-400 bg-red-50/50" : "border-amber-200"}`}
@@ -884,9 +877,10 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase mb-1 block">A (Transv.)</label>
                                     <input 
-                                        type="number" 
+                                        type="text" 
+                                        inputMode="text"
                                         value={armazonTransversal} 
-                                        onChange={(e) => setArmazonTransversal(e.target.value)}
+                                        onChange={(e) => setArmazonTransversal(e.target.value.replace(',', '.'))}
                                         placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
@@ -894,9 +888,10 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase mb-1 block">B (Altura)</label>
                                     <input 
-                                        type="number" 
+                                        type="text" 
+                                        inputMode="text"
                                         value={armazonAltura} 
-                                        onChange={(e) => setArmazonAltura(e.target.value)}
+                                        onChange={(e) => setArmazonAltura(e.target.value.replace(',', '.'))}
                                         placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
@@ -904,9 +899,10 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase mb-1 block">ED (Diag.)</label>
                                     <input 
-                                        type="number" 
+                                        type="text" 
+                                        inputMode="text"
                                         value={armazonDiagonal} 
-                                        onChange={(e) => setArmazonDiagonal(e.target.value)}
+                                        onChange={(e) => setArmazonDiagonal(e.target.value.replace(',', '.'))}
                                         placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
@@ -914,9 +910,10 @@ export default function RecetaModal({ producto, onClose }: RecetaModalProps) {
                                 <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase mb-1 block">DBL (Puente)</label>
                                     <input 
-                                        type="number" 
+                                        type="text" 
+                                        inputMode="text"
                                         value={armazonPuente} 
-                                        onChange={(e) => setArmazonPuente(e.target.value)}
+                                        onChange={(e) => setArmazonPuente(e.target.value.replace(',', '.'))}
                                         placeholder="cm"
                                         className="w-full bg-white border border-gray-200 rounded-xl py-2 px-2 text-xs font-bold focus:ring-2 focus:ring-[#00D1C1] outline-none"
                                     />
